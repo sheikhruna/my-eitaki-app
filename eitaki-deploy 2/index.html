@@ -1,0 +1,2172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0D9488">
+    <meta name="description" content="Eitaki - Decode what's really inside your products. Scan ingredients and understand what you're consuming.">
+    <title>Eitaki - What's Really Inside?</title>
+    
+    <!--
+    ═══════════════════════════════════════════════════════════════════════
+    🔍 Eitaki - What's Really Inside?
+    ═══════════════════════════════════════════════════════════════════════
+    
+    💰 ANALYSIS SOLUTION
+    - Google Gemini Flash
+    - Open Food Facts: 200K+ products
+    - QuaggaJS Barcode
+    
+    
+    📦 Features:
+    - Barcode + Manual ingredient scanning
+    - AI-powered analysis with source citations
+    - Health scoring with WHO/FSSAI/FDA/FSSAI badges
+    - Multi-language ingredient detection
+    - Community verification (Phase 1)
+    - Progressive email verification
+    - Offline capability (PWA)
+    
+    ═══════════════════════════════════════════════════════════════════════
+    -->
+    
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkVpdGFraSAtIFdoYXQncyBSZWFsbHkgSW5zaWRlPyIsCiAgInNob3J0X25hbWUiOiAiRWl0YWtpIiwKICAiZGVzY3JpcHRpb24iOiAiRGVjb2RlIHdoYXQncyByZWFsbHkgaW5zaWRlIHlvdXIgcHJvZHVjdHMiLAogICJzdGFydF91cmwiOiAiLyIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiI0ZGRkZGRiIsCiAgInRoZW1lX2NvbG9yIjogIiMwRDk0ODgiLAogICJvcmllbnRhdGlvbiI6ICJwb3J0cmFpdCIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImRhdGE6aW1hZ2Uvc3ZnK3htbCwlM0NzdmcgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJyB2aWV3Qm94PScwIDAgMTAwIDEwMCclM0UlM0NyZWN0IGZpbGw9JyUyMzBEOTQ4OCcgd2lkdGg9JzEwMCcgaGVpZ2h0PScxMDAnLyUzRSUzQ3RleHQgeD0nNTAlMjUnIHk9JzUwJTI1JyBmb250LXNpemU9JzUwJyB0ZXh0LWFuY2hvcj0nbWlkZGxlJyBkeT0nLjNlbSclM0Xwn5SNJTNDLzRleHQlM0UlM0Mvc3ZnJTNFIiwKICAgICAgInNpemVzIjogIjE5MngxOTIiLAogICAgICAidHlwZSI6ICJpbWFnZS9zdmcreG1sIgogICAgfSwKICAgIHsKICAgICAgInNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWwsJTNDc3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDEwMCAxMDAnJTNFJTNDcmVjdCBmaWxsPSclMjMwRDk0ODgnIHdpZHRoPScxMDAnIGhlaWdodD0nMTAwJy8lM0UlM0N0ZXh0IHg9JzUwJTI1JyB5PSc1MCUyNScgZm9udC1zaXplPSc1MCcgdGV4dC1hbmNob3I9J21pZGRsZScgZHk9Jy4zZW0nJTNF8J+UjSUzQy90ZXh0JTNFJTNDL3N2ZyUzRSIsCiAgICAgICJzaXplcyI6ICI1MTJ4NTEyIiwKICAgICAgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIKICAgIH0KICBdCn0=">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Lab Coat Clean - Scientific Trust */
+            --deep-teal: #0D9488;
+            --vibrant-coral: #FF6B6B;
+            --sunshine-yellow: #FFC93C;
+            --pure-white: #FFFFFF;
+            --ice-blue: #F0F9FF;
+            --slate: #1E293B;
+            --light-slate: #64748B;
+            
+            /* Trust Badges */
+            --trust-green: #10B981;
+            --caution-yellow: #F59E0B;
+            --warning-red: #EF4444;
+            
+            --shadow: rgba(0, 0, 0, 0.1);
+            --shadow-lg: rgba(0, 0, 0, 0.15);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--pure-white);
+            color: var(--slate);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        .app-container {
+            max-width: 100%;
+            min-height: 100vh;
+            padding-bottom: 70px;
+        }
+
+        /* Header - Minimal */
+        .header {
+            background: var(--deep-teal);
+            color: white;
+            padding: 16px 20px;
+            box-shadow: 0 2px 8px var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 700;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-name {
+            font-size: 24px;
+        }
+
+        .logo-subtitle {
+            font-size: 11px;
+            opacity: 0.9;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+        }
+
+        .icon-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s;
+        }
+
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        /* Views */
+        .view {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Onboarding */
+        .onboarding-container {
+            min-height: calc(100vh - 70px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .onboarding-screen {
+            display: none;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .onboarding-screen.active {
+            display: block;
+            animation: fadeIn 0.4s;
+        }
+
+        .onboarding-icon {
+            font-size: 80px;
+            margin-bottom: 24px;
+        }
+
+        .onboarding-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--deep-teal);
+            margin-bottom: 16px;
+        }
+
+        .onboarding-subtitle {
+            font-size: 14px;
+            color: var(--light-slate);
+            margin-bottom: 24px;
+            font-style: italic;
+        }
+
+        .onboarding-text {
+            font-size: 18px;
+            color: var(--light-slate);
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+
+        .onboarding-list {
+            text-align: left;
+            margin: 24px 0;
+            padding: 0 20px;
+        }
+
+        .onboarding-list li {
+            font-size: 16px;
+            color: var(--slate);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 14px 32px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: var(--deep-teal);
+            color: white;
+            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: #0F766E;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(13, 148, 136, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--ice-blue);
+            color: var(--deep-teal);
+        }
+
+        .btn-secondary:hover {
+            background: #E0F2FE;
+        }
+
+        /* Home View - Laser Focused */
+        .home-hero {
+            min-height: calc(100vh - 200px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        .hero-icon {
+            font-size: 120px;
+            margin-bottom: 32px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .hero-title {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--slate);
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+
+        .hero-subtitle {
+            font-size: 18px;
+            color: var(--light-slate);
+            margin-bottom: 40px;
+            max-width: 400px;
+        }
+
+        .scan-btn-large {
+            background: linear-gradient(135deg, var(--deep-teal), #0F766E);
+            color: white;
+            border: none;
+            padding: 20px 48px;
+            border-radius: 16px;
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(13, 148, 136, 0.3);
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .scan-btn-large:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(13, 148, 136, 0.4);
+        }
+
+        .secondary-action {
+            margin-top: 32px;
+            color: var(--light-slate);
+            font-size: 16px;
+        }
+
+        .text-link {
+            color: var(--deep-teal);
+            text-decoration: none;
+            font-weight: 600;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .text-link:hover {
+            border-bottom-color: var(--deep-teal);
+        }
+
+        .recent-scans {
+            margin-top: 48px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .recent-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--light-slate);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .recent-items {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+
+        .recent-item {
+            background: var(--ice-blue);
+            padding: 12px 20px;
+            border-radius: 24px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .recent-item:hover {
+            background: var(--deep-teal);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* Scanner View - Clean */
+        .scanner-container {
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .scanner-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .scanner-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--slate);
+            margin-bottom: 8px;
+        }
+
+        .scanner-subtitle {
+            font-size: 14px;
+            color: var(--light-slate);
+        }
+
+        .scan-mode-toggle {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            background: var(--ice-blue);
+            padding: 8px;
+            border-radius: 12px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--slate);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .mode-btn.active {
+            background: var(--deep-teal);
+            color: white;
+            box-shadow: 0 2px 8px rgba(13, 148, 136, 0.3);
+        }
+
+        .camera-preview {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 3/4;
+            background: #000;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 24px var(--shadow-lg);
+        }
+
+        .camera-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .camera-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            background: linear-gradient(135deg, var(--deep-teal), #0F766E);
+        }
+
+        .placeholder-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .placeholder-text {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .camera-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+        }
+
+        .scan-guide {
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .capture-area {
+            border: 3px dashed var(--sunshine-yellow);
+            border-radius: 12px;
+            height: 200px;
+            margin: 20px 0;
+        }
+
+        .camera-controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .capture-btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 4px solid white;
+            background: var(--vibrant-coral);
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: white;
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+        }
+
+        .capture-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .captured-images {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .captured-image {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid var(--ice-blue);
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        .captured-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .remove-image {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: var(--vibrant-coral);
+            color: white;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn-full {
+            flex: 1;
+        }
+
+        /* Analysis View - Clean & Focused */
+        .analysis-container {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .product-header {
+            background: var(--pure-white);
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px var(--shadow);
+            margin-bottom: 20px;
+            border-left: 4px solid var(--deep-teal);
+        }
+
+        .product-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--slate);
+            margin-bottom: 8px;
+        }
+
+        .product-brand {
+            font-size: 16px;
+            color: var(--light-slate);
+            margin-bottom: 20px;
+        }
+
+        .health-score-card {
+            background: var(--ice-blue);
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .score-main {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 16px;
+        }
+
+        .score-circle {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 28px;
+            color: white;
+            box-shadow: 0 4px 12px var(--shadow);
+            flex-shrink: 0;
+        }
+
+        .score-label {
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .score-excellent { background: var(--trust-green); }
+        .score-good { background: #93C47D; }
+        .score-fair { background: var(--caution-yellow); }
+        .score-poor { background: #F6B26B; }
+        .score-bad { background: var(--warning-red); }
+
+        .score-details {
+            flex: 1;
+        }
+
+        .score-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: var(--slate);
+        }
+
+        .score-desc {
+            font-size: 14px;
+            color: var(--light-slate);
+            line-height: 1.6;
+        }
+
+        .trust-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .trust-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            background: white;
+            box-shadow: 0 2px 6px var(--shadow);
+        }
+
+        .trust-badge.verified {
+            color: var(--trust-green);
+            border: 1.5px solid var(--trust-green);
+        }
+
+        .trust-badge.caution {
+            color: var(--caution-yellow);
+            border: 1.5px solid var(--caution-yellow);
+        }
+
+        .trust-badge.warning {
+            color: var(--warning-red);
+            border: 1.5px solid var(--warning-red);
+        }
+
+        .alert-box {
+            padding: 16px;
+            background: #FEE2E2;
+            border: 2px solid var(--warning-red);
+            border-radius: 12px;
+            color: #991B1B;
+            margin: 16px 0;
+            font-weight: 600;
+        }
+
+        .analysis-section {
+            background: var(--pure-white);
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--slate);
+        }
+
+        .ingredient-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .ingredient-item {
+            padding: 16px;
+            background: var(--ice-blue);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 4px solid var(--deep-teal);
+        }
+
+        .ingredient-item:hover {
+            background: #E0F2FE;
+            transform: translateX(4px);
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        .ingredient-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .ingredient-name {
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--slate);
+        }
+
+        .impact-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .impact-positive {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .impact-neutral {
+            background: #E5E7EB;
+            color: #374151;
+        }
+
+        .impact-negative {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .ingredient-purpose {
+            font-size: 14px;
+            color: var(--light-slate);
+            margin-bottom: 4px;
+        }
+
+        .ingredient-detail {
+            font-size: 13px;
+            color: var(--slate);
+            line-height: 1.6;
+        }
+
+        /* Donation Card */
+        .donation-card {
+            background: linear-gradient(135deg, var(--sunshine-yellow), #FFD966);
+            padding: 24px;
+            border-radius: 16px;
+            margin: 20px;
+            box-shadow: 0 8px 24px rgba(255, 201, 60, 0.3);
+            max-width: 600px;
+            margin: 20px auto;
+        }
+
+        .donation-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--slate);
+            margin-bottom: 16px;
+        }
+
+        .donation-text {
+            font-size: 15px;
+            color: var(--slate);
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+
+        .donation-benefits {
+            margin: 16px 0;
+            padding-left: 20px;
+        }
+
+        .donation-benefits li {
+            font-size: 14px;
+            color: var(--slate);
+            margin-bottom: 8px;
+            list-style-type: disc;
+        }
+
+        .donation-amounts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .donation-btn {
+            background: white;
+            border: 2px solid var(--slate);
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .donation-btn:hover {
+            background: var(--slate);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .donation-footer {
+            font-size: 13px;
+            color: var(--slate);
+            font-style: italic;
+            text-align: center;
+        }
+
+        /* Settings View */
+        .settings-section {
+            background: var(--pure-white);
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        .settings-item {
+            padding: 16px 0;
+            border-bottom: 1px solid var(--ice-blue);
+        }
+
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+
+        .settings-label {
+            font-weight: 600;
+            color: var(--slate);
+            margin-bottom: 8px;
+        }
+
+        .settings-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--ice-blue);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .settings-input:focus {
+            outline: none;
+            border-color: var(--deep-teal);
+        }
+
+        /* Bottom Navigation - Minimal */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--pure-white);
+            border-top: 1px solid var(--ice-blue);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            box-shadow: 0 -4px 12px var(--shadow);
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--light-slate);
+            transition: all 0.3s;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .nav-item.active {
+            color: var(--deep-teal);
+        }
+
+        .nav-icon {
+            font-size: 24px;
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loading-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 300px;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid var(--ice-blue);
+            border-top-color: var(--deep-teal);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--slate);
+        }
+
+        /* Email Verification Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 32px;
+            border-radius: 20px;
+            max-width: 450px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--slate);
+            margin-bottom: 16px;
+        }
+
+        .modal-text {
+            font-size: 15px;
+            color: var(--light-slate);
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid var(--ice-blue);
+            border-radius: 12px;
+            font-size: 16px;
+            margin-bottom: 16px;
+            transition: all 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--deep-teal);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Disclaimer */
+        .disclaimer {
+            background: var(--ice-blue);
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            color: var(--light-slate);
+            margin-top: 20px;
+            border-left: 4px solid var(--deep-teal);
+        }
+
+        .disclaimer strong {
+            color: var(--slate);
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .hero-title {
+                font-size: 28px;
+            }
+
+            .hero-icon {
+                font-size: 80px;
+            }
+
+            .scan-btn-large {
+                font-size: 18px;
+                padding: 18px 36px;
+            }
+
+            .onboarding-title {
+                font-size: 28px;
+            }
+        }
+
+        /* Accessibility */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-name">🔍 Eitaki</div>
+                    <div class="logo-subtitle">Pronounce: AY-ta-kee</div>
+                </div>
+                <div>
+                    <button class="icon-btn" onclick="app.showView('settings')" aria-label="Settings">
+                        ⚙️
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Onboarding -->
+        <div id="view-onboarding" class="view active">
+            <div class="onboarding-container">
+                <!-- Screen 1: Welcome -->
+                <div class="onboarding-screen active" id="onboarding-1">
+                    <div class="onboarding-icon">🔍</div>
+                    <h1 class="onboarding-title">Welcome to Eitaki</h1>
+                    <p class="onboarding-subtitle">Pronounce: AY-ta-kee</p>
+                    <p class="onboarding-text">
+                        Decode ingredients in products you use daily
+                    </p>
+                    <button class="btn btn-primary" onclick="app.nextOnboarding()">Next →</button>
+                </div>
+
+                <!-- Screen 2: How it Works -->
+                <div class="onboarding-screen" id="onboarding-2">
+                    <h2 class="onboarding-title">How it works</h2>
+                    <ul class="onboarding-list">
+                        <li><span style="font-size: 24px;">1️⃣</span> <span>Scan barcode or ingredient list</span></li>
+                        <li><span style="font-size: 24px;">2️⃣</span> <span>Get instant AI analysis</span></li>
+                        <li><span style="font-size: 24px;">3️⃣</span> <span>Make informed choices</span></li>
+                    </ul>
+                    <div class="onboarding-text">
+                        <strong>🔒 Your data stays on your phone</strong><br>
+                        <strong>💚 No ads, ever</strong>
+                    </div>
+                    <button class="btn btn-primary" onclick="app.nextOnboarding()">Next →</button>
+                </div>
+
+                <!-- Screen 3: Get Started -->
+                <div class="onboarding-screen" id="onboarding-3">
+                    <div class="onboarding-icon">🚀</div>
+                    <h2 class="onboarding-title">You're all set!</h2>
+                    <p class="onboarding-text">
+                        Start scanning to decode what's inside your products.
+                        No registration needed to explore!
+                    </p>
+                    <button class="btn btn-primary" onclick="app.completeOnboarding()">Start Scanning</button>
+                    <p class="onboarding-text" style="margin-top: 24px; font-size: 13px;">
+                        Note: Email verification is optional now, but required to contribute products to our community database.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Home View - Laser Focused -->
+        <div id="view-home" class="view">
+            <div style="background: linear-gradient(135deg, #FFC93C, #FFD966); padding: 12px 20px; text-align: center; font-size: 14px; font-weight: 600; color: #1E293B; border-bottom: 2px solid #F59E0B;">
+                🧪 Beta Testing Phase - Help us improve! <a href="https://forms.gle/vnhGDgAVUUeid1SY8" style="color: #0D9488; text-decoration: underline;">Share Feedback</a>
+            </div>
+            <div class="home-hero">
+                <div class="hero-icon" role="img" aria-label="Magnifying glass">🔍</div>
+                <h1 class="hero-title">
+                    What's Really Inside<br>Your Products?
+                </h1>
+                <p class="hero-subtitle">
+                    Scan any product and decode complex ingredients in seconds
+                </p>
+                <button class="scan-btn-large" onclick="app.showView('scanner')" aria-label="Start scanning products">
+                    📸 SCAN PRODUCT
+                </button>
+                <div class="secondary-action">
+                    <a href="#" class="text-link" onclick="app.showSearchModal(); return false;">Or search by name</a>
+                </div>
+                
+                <div class="recent-scans" id="recent-scans-container" style="display: none;">
+                    <div class="recent-title">Recent Scans</div>
+                    <div class="recent-items" id="recent-items"></div>
+                </div>
+            </div>
+
+            <!-- Donation Card - Hidden in Beta -->
+            <div class="donation-card" style="display: none;">
+                <h3 class="donation-title">💚 Help Us Decode More Products</h3>
+                <p class="donation-text">
+                    Every day, families trust us to decode what's really inside their food, shampoo, and baby products.
+                </p>
+                <div class="donation-text" style="margin-top: 12px;">
+                    <strong>Your support means:</strong>
+                </div>
+                <ul class="donation-benefits">
+                    <li>1,000+ more products analyzed monthly</li>
+                    <li>Faster scans for everyone</li>
+                    <li>No ads, ever (we promise!)</li>
+                </ul>
+                <div class="donation-amounts">
+                    <button class="donation-btn" onclick="app.donate(20)">₹20<br><small>One chai</small></button>
+                    <button class="donation-btn" onclick="app.donate(50)">₹50<br><small>Samosa party</small></button>
+                    <button class="donation-btn" onclick="app.donate(100)">₹100<br><small>Full meal</small></button>
+                    <button class="donation-btn" onclick="app.donateCustom()">Custom</button>
+                </div>
+                <div class="donation-footer">
+                    Built by 2 people who believe you deserve to know what you're putting in your body.
+                </div>
+            </div>
+        </div>
+
+        <!-- Scanner View -->
+        <div id="view-scanner" class="view">
+            <div class="scanner-container">
+                <div class="scanner-header">
+                    <h2 class="scanner-title">Scan Product</h2>
+                    <p class="scanner-subtitle">Choose your scanning mode</p>
+                </div>
+
+                <div class="scan-mode-toggle">
+                    <button class="mode-btn active" onclick="app.setScanMode('barcode')" id="mode-barcode">
+                        📊 Barcode
+                    </button>
+                    <button class="mode-btn" onclick="app.setScanMode('ingredients')" id="mode-ingredients">
+                        📋 Ingredients
+                    </button>
+                </div>
+
+                <div class="camera-preview">
+                    <video id="camera-video" class="camera-video" autoplay playsinline style="display:none;" aria-label="Camera preview"></video>
+                    <div id="camera-placeholder" class="camera-placeholder">
+                        <div class="placeholder-icon">📸</div>
+                        <div class="placeholder-text">Tap "Start Camera" below</div>
+                    </div>
+                    <div class="camera-overlay" style="display:none;" id="camera-overlay">
+                        <div class="scan-guide" role="status" aria-live="polite" id="scan-guide-text">
+                            📊 Point at barcode for instant lookup
+                        </div>
+                        <div class="capture-area" aria-hidden="true"></div>
+                        <div class="camera-controls">
+                            <button class="capture-btn" id="capture-btn" aria-label="Capture photo">📷</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="captured-images" id="captured-images" role="list" aria-label="Captured images"></div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-secondary btn-full" id="toggle-camera-btn" onclick="app.toggleCamera()">
+                        Start Camera
+                    </button>
+                    <button class="btn btn-primary btn-full" id="analyze-btn" onclick="app.analyzeProduct()" disabled>
+                        Analyze
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analysis View -->
+        <div id="view-analysis" class="view">
+            <div class="analysis-container" id="analysis-content" role="main">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+
+        <!-- Settings View -->
+        <div id="view-settings" class="view">
+            <div class="analysis-container">
+                <h2 class="section-title">⚙️ Settings</h2>
+                
+                <div class="settings-section">
+                    <h3 style="margin-bottom: 16px;">Profile</h3>
+                    <div class="settings-item">
+                        <div class="settings-label">Name</div>
+                        <input type="text" class="settings-input" id="setting-name" placeholder="Your name">
+                    </div>
+                    <div class="settings-item">
+                        <div class="settings-label">Email</div>
+                        <input type="email" class="settings-input" id="setting-email" placeholder="your.email@example.com">
+                    </div>
+                    <div class="settings-item">
+                        <div class="settings-label">Allergies (comma-separated)</div>
+                        <input type="text" class="settings-input" id="setting-allergies" placeholder="e.g., peanuts, dairy, sulfates, parabens">
+                        <p style="font-size: 12px; color: var(--light-slate); margin-top: 4px;">
+                            Works for food, skincare & household products
+                        </p>
+                    </div>
+                    <div class="settings-item">
+                        <div class="settings-label">Dietary Preferences</div>
+                        <select class="settings-input" id="setting-diet">
+                            <option value="">None</option>
+                            <option value="vegetarian">Vegetarian</option>
+                            <option value="vegan">Vegan</option>
+                            <option value="halal">Halal</option>
+                            <option value="kosher">Kosher</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="app.saveSettings()" style="margin-top: 16px; width: 100%;">
+                        Save Settings
+                    </button>
+                </div>
+
+                <div class="settings-section">
+                    <h3 style="margin-bottom: 16px;">About Eitaki</h3>
+                    <div style="background: #FFF3CD; padding: 12px; border-radius: 8px; margin-bottom: 16px; border-left: 4px solid #FFC93C;">
+                        <strong>🧪 Beta Version</strong><br>
+                        Testing with early users. Community features launching soon!
+                    </div>
+                    <p style="line-height: 1.8; color: var(--slate); margin-bottom: 16px;">
+                        Eitaki helps you decode what's really inside the products you use every day.
+                    </p>
+                    <p style="line-height: 1.8; color: var(--slate); margin-bottom: 16px;">
+                        The name originates from Bengali, where it simply means "What is this?" - the universal question we all ask when we want to truly understand something.
+                    </p>
+                    <p style="line-height: 1.8; color: var(--slate); margin-bottom: 16px;">
+                        Built by two people who believe you shouldn't need a chemistry degree to know what you're putting in your body.
+                    </p>
+                    <p style="line-height: 1.8; color: var(--slate); font-weight: 600;">
+                        No ads. No gated features. Just transparency for everyone.
+                    </p>
+                    <p style="line-height: 1.8; color: var(--light-slate); font-size: 13px; margin-top: 16px;">
+                        <strong>Coming Soon:</strong> Community product database, email verification, product contributions
+                    </p>
+                </div>
+
+                <div class="settings-section">
+                    <h3 style="margin-bottom: 16px;">Data & Privacy</h3>
+                    <p style="line-height: 1.8; color: var(--slate); margin-bottom: 16px;">
+                        • All data stored locally on your device<br>
+                        • No personal data collection or sharing<br>
+                        • Analytics are anonymous (no personal info)<br>
+                        • Delete data anytime below
+                    </p>
+                    <button class="btn btn-secondary" onclick="app.clearAllData()" style="width: 100%;">
+                        Clear All Data
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav" role="navigation" aria-label="Main navigation">
+            <button class="nav-item" onclick="app.showView('home')" aria-label="Home">
+                <span class="nav-icon" aria-hidden="true">🏠</span>
+                <span>Home</span>
+            </button>
+            <button class="nav-item" onclick="app.showView('scanner')" aria-label="Scan product">
+                <span class="nav-icon" aria-hidden="true">📸</span>
+                <span>Scan</span>
+            </button>
+            <button class="nav-item" onclick="app.showView('settings')" aria-label="Settings">
+                <span class="nav-icon" aria-hidden="true">⚙️</span>
+                <span>Settings</span>
+            </button>
+        </nav>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loading-overlay" role="alert" aria-live="assertive">
+            <div class="loading-content">
+                <div class="spinner" aria-hidden="true"></div>
+                <div class="loading-text" id="loading-message">Analyzing product...</div>
+            </div>
+        </div>
+
+        <!-- Email Verification Modal -->
+        <div class="modal" id="email-modal" role="dialog" aria-labelledby="email-modal-title">
+            <div class="modal-content">
+                <h3 class="modal-title" id="email-modal-title">Verify Your Email</h3>
+                <p class="modal-text">
+                    To contribute products to our community database, please verify your email address.
+                    This helps maintain data quality and prevent spam.
+                </p>
+                <input type="email" class="form-input" id="email-input" placeholder="your.email@example.com" aria-label="Email address">
+                <div class="modal-buttons">
+                    <button class="btn btn-secondary" onclick="app.closeModal()" style="flex: 1;">Later</button>
+                    <button class="btn btn-primary" onclick="app.sendVerificationCode()" style="flex: 1;">Send Code</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quagga/dist/quagga.min.js"></script>
+    <script>
+        const app = {
+            currentView: 'onboarding',
+            onboardingStep: 1,
+            cameraActive: false,
+            capturedImages: [],
+            stream: null,
+            scanCount: 0,
+            emailVerified: false,
+            recentScans: [],
+            scanMode: 'barcode', // 'barcode' or 'ingredients'
+            userSettings: {},
+
+            init() {
+                // Check if onboarding already completed
+                const onboardingComplete = localStorage.getItem('onboarding_complete');
+                if (onboardingComplete === 'true') {
+                    this.completeOnboarding();
+                }
+                
+                this.loadRecentScans();
+                this.loadSettings();
+                this.setupEventListeners();
+            },
+
+            setupEventListeners() {
+                document.getElementById('capture-btn')?.addEventListener('click', () => this.captureImage());
+            },
+
+            loadSettings() {
+                const saved = localStorage.getItem('user_settings');
+                if (saved) {
+                    this.userSettings = JSON.parse(saved);
+                    // Populate form fields
+                    if (document.getElementById('setting-name')) {
+                        document.getElementById('setting-name').value = this.userSettings.name || '';
+                        document.getElementById('setting-email').value = this.userSettings.email || '';
+                        document.getElementById('setting-allergies').value = this.userSettings.allergies || '';
+                        document.getElementById('setting-diet').value = this.userSettings.diet || '';
+                    }
+                }
+            },
+
+            saveSettings() {
+                this.userSettings = {
+                    name: document.getElementById('setting-name').value,
+                    email: document.getElementById('setting-email').value,
+                    allergies: document.getElementById('setting-allergies').value,
+                    diet: document.getElementById('setting-diet').value
+                };
+                localStorage.setItem('user_settings', JSON.stringify(this.userSettings));
+                alert('Settings saved successfully! ✓');
+            },
+
+            clearAllData() {
+                if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+                    localStorage.clear();
+                    alert('All data cleared. Reloading app...');
+                    location.reload();
+                }
+            },
+
+            // Onboarding Flow
+            nextOnboarding() {
+                const currentScreen = document.getElementById(`onboarding-${this.onboardingStep}`);
+                currentScreen.classList.remove('active');
+                
+                this.onboardingStep++;
+                const nextScreen = document.getElementById(`onboarding-${this.onboardingStep}`);
+                nextScreen.classList.add('active');
+            },
+
+            completeOnboarding() {
+                localStorage.setItem('onboarding_complete', 'true');
+                this.showView('home');
+            },
+
+            // View Management
+            showView(viewName) {
+                document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                
+                const view = document.getElementById(`view-${viewName}`);
+                if (view) {
+                    view.classList.add('active');
+                }
+                
+                const navItem = document.querySelector(`.nav-item[onclick*="${viewName}"]`);
+                if (navItem) {
+                    navItem.classList.add('active');
+                }
+                
+                this.currentView = viewName;
+                
+                // Load settings when viewing settings page
+                if (viewName === 'settings') {
+                    this.loadSettings();
+                }
+            },
+
+            // Scan Mode Toggle
+            setScanMode(mode) {
+                this.scanMode = mode;
+                document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+                document.getElementById(`mode-${mode}`).classList.add('active');
+                
+                const guideText = document.getElementById('scan-guide-text');
+                if (mode === 'barcode') {
+                    guideText.textContent = '📊 Point at barcode for instant lookup';
+                } else {
+                    guideText.textContent = '📋 Point at ingredient list - any language';
+                }
+            },
+
+            // Camera Functions
+            async toggleCamera() {
+                const video = document.getElementById('camera-video');
+                const placeholder = document.getElementById('camera-placeholder');
+                const overlay = document.getElementById('camera-overlay');
+                const btn = document.getElementById('toggle-camera-btn');
+
+                if (!this.cameraActive) {
+                    try {
+                        this.stream = await navigator.mediaDevices.getUserMedia({ 
+                            video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } } 
+                        });
+                        video.srcObject = this.stream;
+                        video.style.display = 'block';
+                        placeholder.style.display = 'none';
+                        overlay.style.display = 'flex';
+                        btn.textContent = 'Stop Camera';
+                        btn.classList.remove('btn-secondary');
+                        btn.classList.add('btn-primary');
+                        this.cameraActive = true;
+                        
+                        // Start barcode detection if in barcode mode
+                        if (this.scanMode === 'barcode') {
+                            this.startBarcodeDetection();
+                        }
+                    } catch (err) {
+                        alert('Camera access denied. Please enable camera permissions in your browser settings.');
+                        console.error(err);
+                    }
+                } else {
+                    this.stopCamera();
+                }
+            },
+
+            stopCamera() {
+                const video = document.getElementById('camera-video');
+                const placeholder = document.getElementById('camera-placeholder');
+                const overlay = document.getElementById('camera-overlay');
+                const btn = document.getElementById('toggle-camera-btn');
+                
+                this.stream?.getTracks().forEach(track => track.stop());
+                video.style.display = 'none';
+                placeholder.style.display = 'flex';
+                overlay.style.display = 'none';
+                btn.textContent = 'Start Camera';
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-secondary');
+                this.cameraActive = false;
+                
+                if (window.Quagga) {
+                    Quagga.stop();
+                }
+            },
+
+            startBarcodeDetection() {
+                if (!window.Quagga) return;
+                
+                Quagga.init({
+                    inputStream: {
+                        type: "LiveStream",
+                        target: document.querySelector('#camera-video'),
+                        constraints: {
+                            facingMode: "environment"
+                        }
+                    },
+                    decoder: {
+                        readers: ["ean_reader", "ean_8_reader", "upc_reader"]
+                    },
+                    locate: true
+                }, (err) => {
+                    if (!err) {
+                        Quagga.start();
+                    }
+                });
+
+                Quagga.onDetected(async (result) => {
+                    const barcode = result.codeResult.code;
+                    console.log("Barcode detected:", barcode);
+                    
+                    // Stop camera and barcode detection
+                    this.stopCamera();
+                    
+                    // Try Open Food Facts first
+                    this.showLoading('Looking up product...');
+                    const offData = await this.queryOpenFoodFacts(barcode);
+                    
+                    if (offData && offData.found) {
+                        this.hideLoading();
+                        const analysis = this.convertOFFToAnalysis(offData);
+                        this.showAnalysis(analysis);
+                        this.addToRecentScans(analysis);
+                    } else {
+                        this.hideLoading();
+                        alert('Product not found in database. Try scanning the ingredient list manually.');
+                        this.showView('scanner');
+                    }
+                });
+            },
+
+            captureImage() {
+                const video = document.getElementById('camera-video');
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0);
+                
+                const imageData = canvas.toDataURL('image/jpeg', 0.9);
+                this.capturedImages.push(imageData);
+                this.renderCapturedImages();
+                
+                document.getElementById('analyze-btn').disabled = false;
+            },
+
+            renderCapturedImages() {
+                const container = document.getElementById('captured-images');
+                container.innerHTML = this.capturedImages.map((img, idx) => `
+                    <div class="captured-image" role="listitem">
+                        <img src="${img}" alt="Captured image ${idx + 1}">
+                        <button class="remove-image" onclick="app.removeImage(${idx})" aria-label="Remove image ${idx + 1}">×</button>
+                    </div>
+                `).join('');
+            },
+
+            removeImage(index) {
+                this.capturedImages.splice(index, 1);
+                this.renderCapturedImages();
+                if (this.capturedImages.length === 0) {
+                    document.getElementById('analyze-btn').disabled = true;
+                }
+            },
+
+            // Analysis Functions
+            async analyzeProduct() {
+                this.showLoading('Extracting text from images...');
+
+                try {
+                    let extractedText = '';
+                    for (let i = 0; i < this.capturedImages.length; i++) {
+                        this.updateLoadingMessage(`Processing image ${i + 1} of ${this.capturedImages.length}...`);
+                        const result = await Tesseract.recognize(this.capturedImages[i], 'eng+hin', {
+                            logger: m => console.log(m)
+                        });
+                        extractedText += result.data.text + '\n\n';
+                    }
+
+                    this.updateLoadingMessage('Analyzing with AI...');
+                    const analysis = await this.analyzeWithGemini(extractedText, this.scanMode);
+                    
+                    this.hideLoading();
+                    this.showAnalysis(analysis);
+                    this.addToRecentScans(analysis);
+                    this.incrementScanCount();
+                    
+                    // Reset
+                    this.capturedImages = [];
+                    this.renderCapturedImages();
+                    document.getElementById('analyze-btn').disabled = true;
+                    this.stopCamera();
+
+                } catch (error) {
+                    this.hideLoading();
+                    alert('Analysis failed. Please try again with clearer images.');
+                    console.error(error);
+                }
+            },
+
+            async queryOpenFoodFacts(barcode) {
+                try {
+                    const response = await fetch(
+                        `https://world.openfoodfacts.org/api/v0/product/${barcode}.json`
+                    );
+                    const data = await response.json();
+                    
+                    if (data.status === 1) {
+                        return {
+                            found: true,
+                            name: data.product.product_name,
+                            brand: data.product.brands,
+                            ingredients: data.product.ingredients_text,
+                            nutriScore: data.product.nutriscore_grade,
+                            nutrition: data.product.nutriments,
+                            category: data.product.categories,
+                            image: data.product.image_url
+                        };
+                    }
+                } catch (error) {
+                    console.error('Open Food Facts error:', error);
+                }
+                
+                return { found: false };
+            },
+
+            convertOFFToAnalysis(offData) {
+                const scoreMap = { 'a': 85, 'b': 70, 'c': 55, 'd': 40, 'e': 25 };
+                const score = scoreMap[offData.nutriScore?.toLowerCase()] || 50;
+                
+                return {
+                    productName: offData.name || 'Unknown Product',
+                    brand: offData.brand || 'Unknown Brand',
+                    healthScore: score,
+                    scoreCategory: this.getScoreCategory(score),
+                    scoreReason: `Based on Nutri-Score ${offData.nutriScore?.toUpperCase() || 'Unknown'}`,
+                    allergyWarnings: this.checkAllergies(offData.ingredients),
+                    macros: {
+                        calories: `${offData.nutrition?.['energy-kcal_100g'] || 0} kcal`,
+                        protein: `${offData.nutrition?.proteins_100g || 0}g`,
+                        carbs: `${offData.nutrition?.carbohydrates_100g || 0}g`,
+                        fat: `${offData.nutrition?.fat_100g || 0}g`,
+                        fiber: `${offData.nutrition?.fiber_100g || 0}g`,
+                        sugar: `${offData.nutrition?.sugars_100g || 0}g`
+                    },
+                    ingredients: this.parseIngredientsFromOFF(offData.ingredients),
+                    certifications: ['Open Food Facts Verified'],
+                    alternatives: [],
+                    image: offData.image
+                };
+            },
+
+            parseIngredientsFromOFF(ingredientsText) {
+                if (!ingredientsText) return [];
+                
+                const ingredients = ingredientsText.split(',').slice(0, 5).map(ing => ({
+                    name: ing.trim(),
+                    purpose: 'Main ingredient',
+                    healthImpact: 'neutral',
+                    details: 'Part of product formulation',
+                    source: 'Product label'
+                }));
+                
+                return ingredients;
+            },
+
+            checkAllergies(ingredientsText) {
+                if (!this.userSettings.allergies || !ingredientsText) return [];
+                
+                const allergyList = this.userSettings.allergies.toLowerCase().split(',').map(a => a.trim());
+                const foundAllergens = [];
+                
+                allergyList.forEach(allergen => {
+                    if (ingredientsText.toLowerCase().includes(allergen)) {
+                        foundAllergens.push(allergen);
+                    }
+                });
+                
+                return foundAllergens;
+            },
+
+            async analyzeWithGemini(extractedText, mode) {
+                const GEMINI_API_KEY = 'AIzaSyBRU_8O1QXJaYnx1liyf7j3lhQwpj1fuEU';
+                
+                const basePrompt = mode === 'ingredients' 
+                    ? `You are analyzing ONLY an ingredient list (not a full product). The user scanned just the ingredients section.
+
+Extract and analyze the ingredients. Detect the language automatically (English, Hindi, Tamil, Telugu, etc).
+
+Text from ingredient list:
+${extractedText}
+
+Respond ONLY with valid JSON in this exact format:
+{
+  "detectedLanguage": "English/Hindi/Tamil/etc",
+  "productName": "Unknown (ingredients only scan)",
+  "category": "food/personal-care/household",
+  "healthScore": 0-100,
+  "scoreCategory": "excellent/good/fair/poor/bad",
+  "scoreReason": "Brief explanation based on ingredient analysis",
+  "allergyWarnings": ["any allergens found"],
+  "ingredients": [
+    {
+      "name": "ingredient name",
+      "purpose": "what it does",
+      "healthImpact": "positive/neutral/negative",
+      "details": "detailed explanation in simple language",
+      "source": "where it comes from",
+      "readabilityIssue": false or "Could not read clearly - please verify"
+    }
+  ],
+  "overallVerdict": "🟢 Good to buy / ⚠️ Consider alternatives / 🔴 Skip this",
+  "trustBadges": [
+    {"type": "verified/caution/warning", "text": "badge text", "standard": "WHO/FSSAI/FDA"}
+  ]
+}
+
+Mark any ingredients that couldn't be read clearly with readabilityIssue.`
+                    : `Analyze this food/personal care product label for Indian consumers. Provide a comprehensive analysis in JSON format.
+
+Text from product label:
+${extractedText}
+
+Respond ONLY with valid JSON in this exact format:
+{
+  "productName": "Product name",
+  "brand": "Brand name",
+  "category": "food/personal-care/household",
+  "healthScore": 0-100,
+  "scoreCategory": "excellent/good/fair/poor/bad",
+  "scoreReason": "Brief explanation",
+  "allergyWarnings": ["any allergens found"],
+  "macros": {
+    "calories": "value per 100g",
+    "protein": "value",
+    "carbs": "value",
+    "fat": "value",
+    "fiber": "value",
+    "sugar": "value"
+  },
+  "ingredients": [
+    {
+      "name": "ingredient name",
+      "purpose": "what it does",
+      "healthImpact": "positive/neutral/negative",
+      "details": "detailed explanation in simple language",
+      "source": "where it comes from"
+    }
+  ],
+  "certifications": ["FSSAI", "organic", etc],
+  "trustBadges": [
+    {"type": "verified/caution/warning", "text": "badge text", "standard": "WHO/FSSAI/FDA"}
+  ],
+  "alternatives": []
+}`;
+
+                try {
+                    if (GEMINI_API_KEY === 'YOUR_GEMINI_API_KEY_HERE') {
+                        throw new Error('API key not set');
+                    }
+                    
+                    const response = await fetch(
+                        `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+                        {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                contents: [{ parts: [{ text: basePrompt }] }],
+                                generationConfig: {
+                                    temperature: 0.7,
+                                    maxOutputTokens: 4096
+                                }
+                            })
+                        }
+                    );
+                    
+                    const data = await response.json();
+                    let text = data.candidates[0].content.parts[0].text;
+                    text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+                    const jsonMatch = text.match(/\{[\s\S]*\}/);
+                    
+                    if (jsonMatch) {
+                        return JSON.parse(jsonMatch[0]);
+                    }
+                    
+                    throw new Error('Could not parse response');
+                } catch (error) {
+                    console.error('Gemini API error:', error);
+                    alert('⚠️ Error: API key missing. Cannot enable AI analysis.');
+                    return this.getDemoAnalysis(mode);
+                }
+            },
+
+            getDemoAnalysis(mode) {
+                if (mode === 'ingredients') {
+                    return {
+                        detectedLanguage: "English",
+                        productName: "Unknown (ingredients only scan)",
+                        category: "food",
+                        healthScore: 45,
+                        scoreCategory: "fair",
+                        scoreReason: "Contains refined flour and palm oil. High sodium content.",
+                        allergyWarnings: [],
+                        ingredients: [
+                            {
+                                name: "Refined Wheat Flour (Maida)",
+                                purpose: "Base ingredient",
+                                healthImpact: "neutral",
+                                details: "Provides carbohydrates but lacks fiber. Digests quickly and can spike blood sugar.",
+                                source: "Wheat grains",
+                                readabilityIssue: false
+                            },
+                            {
+                                name: "Palm Oil",
+                                purpose: "Frying agent",
+                                healthImpact: "negative",
+                                details: "High in saturated fat which can increase cholesterol. Environmental concerns with palm oil production.",
+                                source: "Palm fruit",
+                                readabilityIssue: false
+                            },
+                            {
+                                name: "[Unclear ingredient]",
+                                purpose: "Unknown",
+                                healthImpact: "neutral",
+                                details: "Could not read clearly from image. Please verify on actual product.",
+                                source: "Unknown",
+                                readabilityIssue: "Poor image quality - please verify on product"
+                            }
+                        ],
+                        overallVerdict: "⚠️ Consider alternatives",
+                        trustBadges: [
+                            { type: "caution", text: "High Sodium", standard: "WHO" }
+                        ]
+                    };
+                }
+                
+                return {
+                    productName: "Maggi 2-Minute Noodles (Demo)",
+                    brand: "Nestlé",
+                    category: "food",
+                    healthScore: 45,
+                    scoreCategory: "fair",
+                    scoreReason: "High in sodium and contains preservatives. Provides quick energy but lacks nutritional balance.",
+                    allergyWarnings: [],
+                    macros: {
+                        calories: "310 kcal",
+                        protein: "8g",
+                        carbs: "46g",
+                        fat: "11g",
+                        fiber: "2g",
+                        sugar: "3g"
+                    },
+                    ingredients: [
+                        {
+                            name: "Refined Wheat Flour (Maida)",
+                            purpose: "Base ingredient for noodles",
+                            healthImpact: "neutral",
+                            details: "Provides carbohydrates but lacks fiber. Digests quickly and can spike blood sugar.",
+                            source: "Wheat grains"
+                        },
+                        {
+                            name: "Palm Oil",
+                            purpose: "Frying agent",
+                            healthImpact: "negative",
+                            details: "High in saturated fat which can increase cholesterol. Environmental concerns with palm oil production.",
+                            source: "Palm fruit"
+                        },
+                        {
+                            name: "Monosodium Glutamate (MSG)",
+                            purpose: "Flavor enhancer",
+                            healthImpact: "negative",
+                            details: "Controversial additive. Some people experience reactions. Safe in small amounts per FSSAI.",
+                            source: "Synthetic"
+                        }
+                    ],
+                    certifications: ["FSSAI Licensed"],
+                    trustBadges: [
+                        { type: "verified", text: "FSSAI Approved", standard: "FSSAI" },
+                        { type: "caution", text: "High Sodium", standard: "WHO" }
+                    ],
+                    alternatives: []
+                };
+            },
+
+            getScoreCategory(score) {
+                if (score >= 80) return 'excellent';
+                if (score >= 60) return 'good';
+                if (score >= 40) return 'fair';
+                if (score >= 20) return 'poor';
+                return 'bad';
+            },
+
+            showAnalysis(analysis) {
+                const container = document.getElementById('analysis-content');
+                const scoreClass = `score-${analysis.scoreCategory}`;
+
+                let trustBadgesHTML = '';
+                if (analysis.trustBadges && analysis.trustBadges.length > 0) {
+                    trustBadgesHTML = `
+                        <div class="trust-badges" style="margin-top: 16px;">
+                            ${analysis.trustBadges.map(badge => `
+                                <span class="trust-badge ${badge.type}">
+                                    ${badge.type === 'verified' ? '✓' : badge.type === 'caution' ? '⚠' : '⚠'}
+                                    ${badge.text}
+                                </span>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+
+                let allergiesHTML = '';
+                if (analysis.allergyWarnings && analysis.allergyWarnings.length > 0) {
+                    allergiesHTML = `
+                        <div class="alert-box" role="alert">
+                            <strong>⚠️ Allergy Alert:</strong> Contains ${analysis.allergyWarnings.join(', ')}
+                        </div>
+                    `;
+                }
+
+                let macrosHTML = '';
+                if (analysis.macros) {
+                    macrosHTML = `
+                        <div class="analysis-section">
+                            <h2 class="section-title">📊 Nutrition Facts</h2>
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                                ${Object.entries(analysis.macros).map(([key, value]) => `
+                                    <div style="background: var(--ice-blue); padding: 12px; border-radius: 8px; text-align: center;">
+                                        <div style="font-size: 18px; font-weight: 700; color: var(--slate);">${value}</div>
+                                        <div style="font-size: 12px; color: var(--light-slate); text-transform: capitalize;">${key}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                let verdictHTML = '';
+                if (analysis.overallVerdict) {
+                    verdictHTML = `
+                        <div style="background: var(--ice-blue); padding: 20px; border-radius: 12px; text-align: center; font-size: 18px; font-weight: 700; margin-bottom: 20px;">
+                            ${analysis.overallVerdict}
+                        </div>
+                    `;
+                }
+
+                container.innerHTML = `
+                    <div class="product-header">
+                        ${analysis.image ? `<img src="${analysis.image}" alt="${analysis.productName}" style="width: 100%; max-height: 200px; object-fit: contain; margin-bottom: 16px; border-radius: 8px;">` : ''}
+                        <h1 class="product-name">${analysis.productName}</h1>
+                        ${analysis.brand ? `<p class="product-brand">${analysis.brand}</p>` : ''}
+                        ${analysis.detectedLanguage ? `<p class="product-brand">Detected language: ${analysis.detectedLanguage}</p>` : ''}
+                        
+                        <div class="health-score-card">
+                            <div class="score-main">
+                                <div class="score-circle ${scoreClass}">
+                                    ${analysis.healthScore}
+                                    <div class="score-label">${analysis.scoreCategory}</div>
+                                </div>
+                                <div class="score-details">
+                                    <div class="score-title">Health Score</div>
+                                    <p class="score-desc">${analysis.scoreReason}</p>
+                                </div>
+                            </div>
+                            ${trustBadgesHTML}
+                        </div>
+
+                        ${allergiesHTML}
+                        ${verdictHTML}
+                    </div>
+
+                    ${macrosHTML}
+
+                    <div class="analysis-section">
+                        <h2 class="section-title">🔬 Ingredients Deep Dive</h2>
+                        <div class="ingredient-list">
+                            ${(analysis.ingredients || []).map(ing => `
+                                <div class="ingredient-item">
+                                    <div class="ingredient-header">
+                                        <span class="ingredient-name">${ing.name}</span>
+                                        <span class="impact-badge impact-${ing.healthImpact}">
+                                            ${ing.healthImpact === 'positive' ? '✓ Good' : ing.healthImpact === 'negative' ? '⚠ Caution' : 'Neutral'}
+                                        </span>
+                                    </div>
+                                    ${ing.readabilityIssue ? `<div class="alert-box" style="margin: 8px 0; font-size: 12px; padding: 8px;">⚠️ ${ing.readabilityIssue}</div>` : ''}
+                                    <div class="ingredient-purpose"><strong>Purpose:</strong> ${ing.purpose}</div>
+                                    <div class="ingredient-detail">${ing.details}</div>
+                                    <div style="font-size: 12px; color: var(--light-slate); margin-top: 8px;">
+                                        <strong>Source:</strong> ${ing.source}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    ${analysis.certifications && analysis.certifications.length > 0 ? `
+                        <div class="analysis-section">
+                            <h2 class="section-title">✓ Certifications & Standards</h2>
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                ${analysis.certifications.map(cert => `
+                                    <span style="background: var(--ice-blue); padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 600;">
+                                        ${cert}
+                                    </span>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <div class="disclaimer">
+                        <strong>⚠️ Important Disclaimer:</strong> This analysis is for educational purposes only and should not be considered medical advice. 
+                        Information is based on detected ${this.scanMode === 'ingredients' ? 'ingredients' : 'product data'} and may not be 100% accurate. 
+                        Always verify ingredients on the actual product packaging. May miss allergens if not clearly visible in scan. 
+                        We are not liable for errors in detection or analysis. Consult healthcare professionals for specific dietary needs.
+                        <br><br>
+                        <strong>Data Sources:</strong> ${analysis.image ? 'Open Food Facts, ' : ''}AI analysis (Gemini), OCR text extraction.
+                        Last analyzed: ${new Date().toLocaleDateString()}
+                    </div>
+                `;
+
+                this.showView('analysis');
+            },
+
+            // Utility Functions
+            incrementScanCount() {
+                this.scanCount++;
+                localStorage.setItem('scan_count', this.scanCount.toString());
+                
+                // Check if should prompt for email verification (after 5 scans)
+                if (this.scanCount === 5 && !this.emailVerified) {
+                    // Could show email modal here, but keeping it progressive for now
+                }
+            },
+
+            addToRecentScans(analysis) {
+                const recent = {
+                    name: analysis.productName,
+                    brand: analysis.brand,
+                    score: analysis.healthScore,
+                    timestamp: Date.now()
+                };
+                
+                this.recentScans.unshift(recent);
+                this.recentScans = this.recentScans.slice(0, 5); // Keep only 5
+                localStorage.setItem('recent_scans', JSON.stringify(this.recentScans));
+                this.renderRecentScans();
+            },
+
+            loadRecentScans() {
+                const saved = localStorage.getItem('recent_scans');
+                if (saved) {
+                    this.recentScans = JSON.parse(saved);
+                    this.renderRecentScans();
+                }
+            },
+
+            renderRecentScans() {
+                if (this.recentScans.length === 0) return;
+                
+                const container = document.getElementById('recent-scans-container');
+                const itemsContainer = document.getElementById('recent-items');
+                
+                container.style.display = 'block';
+                itemsContainer.innerHTML = this.recentScans.map(scan => `
+                    <div class="recent-item">
+                        ${scan.name}
+                    </div>
+                `).join('');
+            },
+
+            // Donation Functions
+            donate(amount) {
+                alert(`Thank you for your support! ₹${amount} donation feature coming soon. For now, you can support us by sharing Eitaki with friends! 💚`);
+            },
+
+            donateCustom() {
+                const amount = prompt('Enter donation amount (₹):');
+                if (amount && !isNaN(amount)) {
+                    this.donate(amount);
+                }
+            },
+
+            // Modal Functions
+            closeModal() {
+                document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+            },
+
+            showEmailModal() {
+                document.getElementById('email-modal').classList.add('active');
+            },
+
+            showSearchModal() {
+                alert('Search feature coming soon! For now, please use the scan function. 📸');
+            },
+
+            async sendVerificationCode() {
+                const email = document.getElementById('email-input').value;
+                if (!email || !email.includes('@')) {
+                    alert('Please enter a valid email address');
+                    return;
+                }
+                
+                alert('Email verification feature coming soon! For now, you can scan products without verification. 📧');
+                this.closeModal();
+            },
+
+            // Loading Functions
+            showLoading(message) {
+                document.getElementById('loading-message').textContent = message;
+                document.getElementById('loading-overlay').classList.add('active');
+            },
+
+            updateLoadingMessage(message) {
+                document.getElementById('loading-message').textContent = message;
+            },
+
+            hideLoading() {
+                document.getElementById('loading-overlay').classList.remove('active');
+            }
+        };
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+
+        // Register service worker for PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('data:application/javascript,');
+        }
+    </script>
+</body>
+</html>
