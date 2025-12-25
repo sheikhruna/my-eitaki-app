@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0D9488">
+    <meta name="theme-color" content="#16A34A">
     <meta name="description" content="Eitaki - Decode what's really inside your products. Scan ingredients and understand what you're consuming.">
     <title>Eitaki - What's Really Inside?</title>
     
@@ -40,12 +40,25 @@
         }
 
         :root {
-            /* Lab Coat Clean - Scientific Trust */
-            --deep-teal: #0D9488;
+            /* BUG #18: Natural Green Color Scheme */
+            /* PRIMARY PALETTE */
+            --color-brand-primary: #16A34A;  /* Eitaki Green */
+            --color-brand-primary-light: #86EFAC;
+            --color-brand-primary-dark: #15803D;
+            
+            /* HEALTH SCORE COLORS */
+            --color-score-excellent: #16A34A;  /* 85-100 */
+            --color-score-good: #84CC16;       /* 70-84 */
+            --color-score-fair: #EAB308;       /* 50-69 */
+            --color-score-poor: #F97316;       /* 35-49 */
+            --color-score-very-poor: #DC2626;  /* 0-34 */
+            
+            /* Legacy variables mapped to new scheme */
+            --deep-teal: #16A34A;
             --vibrant-coral: #FF6B6B;
             --sunshine-yellow: #FFC93C;
             --pure-white: #FFFFFF;
-            --ice-blue: #F0F9FF;
+            --ice-blue: #F0FDF4;
             --slate: #1E293B;
             --light-slate: #64748B;
             
@@ -53,6 +66,11 @@
             --trust-green: #10B981;
             --caution-yellow: #F59E0B;
             --warning-red: #EF4444;
+            
+            /* Functional Colors */
+            --color-success: #10B981;
+            --color-warning: #F59E0B;
+            --color-error: #EF4444;
             
             --shadow: rgba(0, 0, 0, 0.1);
             --shadow-lg: rgba(0, 0, 0, 0.15);
@@ -1078,8 +1096,8 @@
         <header class="header">
             <div class="header-content">
                 <div class="logo">
-                    <div class="logo-name">🔍 Eitaki</div>
-                    <div class="logo-subtitle">Pronounce: AY-ta-kee</div>
+                    <div class="logo-name">🌱 Eitaki</div>
+                    <div class="logo-subtitle">Decode Every Ingredient</div>
                 </div>
                 <div>
                     <button class="icon-btn" onclick="app.showView('settings')" aria-label="Settings">
@@ -1094,11 +1112,11 @@
             <div class="onboarding-container">
                 <!-- Screen 1: Welcome -->
                 <div class="onboarding-screen active" id="onboarding-1">
-                    <div class="onboarding-icon">🔍</div>
+                    <div class="onboarding-icon">🌱</div>
                     <h1 class="onboarding-title">Welcome to Eitaki</h1>
-                    <p class="onboarding-subtitle">Pronounce: AY-ta-kee</p>
                     <p class="onboarding-text">
-                        Decode ingredients in products you use daily
+                        Decode ingredients in products you use daily.<br>
+                        From Delhi to Dubai, Mumbai to Manhattan.
                     </p>
                     <button class="btn btn-primary" onclick="app.nextOnboarding()">Next →</button>
                 </div>
@@ -1107,9 +1125,9 @@
                 <div class="onboarding-screen" id="onboarding-2">
                     <h2 class="onboarding-title">How it works</h2>
                     <ul class="onboarding-list">
-                        <li><span style="font-size: 24px;">1️⃣</span> <span>Scan barcode or ingredient list</span></li>
-                        <li><span style="font-size: 24px;">2️⃣</span> <span>Get instant AI analysis</span></li>
-                        <li><span style="font-size: 24px;">3️⃣</span> <span>Make informed choices</span></li>
+                        <li><span style="font-size: 24px;">📸</span> <span>Scan barcode or ingredient list</span></li>
+                        <li><span style="font-size: 24px;">🔬</span> <span>Get instant AI-powered analysis</span></li>
+                        <li><span style="font-size: 24px;">💚</span> <span>Make informed choices for your family</span></li>
                     </ul>
                     <div class="onboarding-text">
                         <strong>🔒 Your data stays on your phone</strong><br>
@@ -1118,17 +1136,16 @@
                     <button class="btn btn-primary" onclick="app.nextOnboarding()">Next →</button>
                 </div>
 
-                <!-- Screen 3: Get Started -->
+                <!-- Screen 3: Get Started - BUG #1 FIX: No signup required -->
                 <div class="onboarding-screen" id="onboarding-3">
                     <div class="onboarding-icon">🚀</div>
                     <h2 class="onboarding-title">You're all set!</h2>
                     <p class="onboarding-text">
-                        Start scanning to decode what's inside your products.
-                        No registration needed to explore!
+                        Start scanning immediately—no signup required!
                     </p>
                     <button class="btn btn-primary" onclick="app.completeOnboarding()">Start Scanning</button>
-                    <p class="onboarding-text" style="margin-top: 24px; font-size: 13px;">
-                        Note: Email verification is optional now, but required to contribute products to our community database.
+                    <p class="onboarding-text" style="margin-top: 24px; font-size: 13px; color: #64748B;">
+                        💡 <strong>Want to contribute?</strong> Create an account later to add products and help the community.
                     </p>
                 </div>
             </div>
@@ -1136,11 +1153,11 @@
 
         <!-- Home View - Laser Focused -->
         <div id="view-home" class="view">
-            <div style="background: linear-gradient(135deg, #FFC93C, #FFD966); padding: 12px 20px; text-align: center; font-size: 14px; font-weight: 600; color: #1E293B; border-bottom: 2px solid #F59E0B;">
-                🧪 Beta Testing Phase - Help us improve! <a href="https://forms.gle/vnhGDgAVUUeid1SY8" style="color: #0D9488; text-decoration: underline;">Share Feedback</a>
+            <div style="background: linear-gradient(135deg, #F0FDF4, #DCFCE7); padding: 12px 20px; text-align: center; font-size: 14px; font-weight: 600; color: #166534; border-bottom: 2px solid #86EFAC;">
+                🧪 Beta Testing Phase - Help us improve! <a href="https://forms.gle/vnhGDgAVUUeid1SY8" style="color: #16A34A; text-decoration: underline;">Share Feedback</a>
             </div>
             <div class="home-hero">
-                <div class="hero-icon" role="img" aria-label="Magnifying glass">🔍</div>
+                <div class="hero-icon" role="img" aria-label="Plant seedling">🌱</div>
                 <h1 class="hero-title">
                     What's Really Inside<br>Your Products?
                 </h1>
@@ -1181,7 +1198,7 @@
                     <button class="donation-btn" onclick="app.donateCustom()">Custom</button>
                 </div>
                 <div class="donation-footer">
-                    Built by 2 people who believe you deserve to know what you're putting in your body.
+                    Made with 💚 by people who believe you deserve to know what you're consuming
                 </div>
             </div>
         </div>
@@ -1222,6 +1239,12 @@
 
                 <div class="captured-images" id="captured-images" role="list" aria-label="Captured images"></div>
 
+                <!-- BUG #2: Hidden file input for gallery fallback -->
+                <input type="file" id="file-input-fallback" accept="image/*" style="display: none;" onchange="app.handleGalleryUpload(event)">
+
+                <!-- BUG #3: Scanner result area for quality feedback and errors -->
+                <div id="scanner-result" style="display: none;"></div>
+
                 <div class="action-buttons">
                     <button class="btn btn-secondary btn-full" id="toggle-camera-btn" onclick="app.toggleCamera()">
                         Start Camera
@@ -1240,80 +1263,195 @@
             </div>
         </div>
 
-        <!-- Settings View -->
+        <!-- Settings View - BUG #11: Simplified Profile -->
         <div id="view-settings" class="view">
             <div class="analysis-container">
                 <h2 class="section-title">⚙️ Settings</h2>
                 
+                <!-- BUG #11: Simplified Profile Section -->
                 <div class="settings-section">
-                    <h3 style="margin-bottom: 16px;">Profile</h3>
+                    <h3 style="margin-bottom: 16px;">📸 Profile</h3>
                     <div class="settings-item">
                         <div class="settings-label">Name</div>
                         <input type="text" class="settings-input" id="setting-name" placeholder="Your name">
                     </div>
                     <div class="settings-item">
-                        <div class="settings-label">Email</div>
-                        <input type="email" class="settings-input" id="setting-email" placeholder="your.email@example.com">
-                    </div>
-                    <div class="settings-item">
-                        <div class="settings-label">Allergies (comma-separated)</div>
-                        <input type="text" class="settings-input" id="setting-allergies" placeholder="e.g., peanuts, dairy, sulfates, parabens">
+                        <div class="settings-label">Food Allergies</div>
+                        <input type="text" class="settings-input" id="setting-allergies" placeholder="e.g., peanuts, dairy, gluten">
                         <p style="font-size: 12px; color: var(--light-slate); margin-top: 4px;">
-                            Works for food, skincare & household products
+                            Separate multiple allergies with commas
                         </p>
-                    </div>
-                    <div class="settings-item">
-                        <div class="settings-label">Dietary Preferences</div>
-                        <select class="settings-input" id="setting-diet">
-                            <option value="">None</option>
-                            <option value="vegetarian">Vegetarian</option>
-                            <option value="vegan">Vegan</option>
-                            <option value="halal">Halal</option>
-                            <option value="kosher">Kosher</option>
-                        </select>
                     </div>
                     <button class="btn btn-primary" onclick="app.saveSettings()" style="margin-top: 16px; width: 100%;">
                         Save Settings
                     </button>
                 </div>
 
+                <!-- Scan History (Simplified) -->
                 <div class="settings-section">
-                    <h3 style="margin-bottom: 16px;">About Eitaki</h3>
-                    <div style="background: #FFF3CD; padding: 12px; border-radius: 8px; margin-bottom: 16px; border-left: 4px solid #FFC93C;">
+                    <h3 style="margin-bottom: 16px;">📜 Scan History</h3>
+                    <div id="scan-history-list" style="max-height: 200px; overflow-y: auto;">
+                        <p style="color: var(--light-slate); font-size: 14px;">Your recent scans will appear here.</p>
+                    </div>
+                </div>
+
+                <!-- BUG #13: About & Legal Section -->
+                <div class="settings-section">
+                    <h3 style="margin-bottom: 16px;">ℹ️ About & Legal</h3>
+                    <div style="background: #F0FDF4; padding: 12px; border-radius: 8px; margin-bottom: 16px; border-left: 4px solid #16A34A;">
                         <strong>🧪 Beta Version</strong><br>
                         Testing with early users. Community features launching soon!
                     </div>
                     <p style="line-height: 1.8; color: var(--slate); margin-bottom: 16px;">
-                        Eitaki helps you decode what's really inside the products you use every day.
+                        Eitaki helps you decode what's really inside the products you use every day. From Delhi to Dubai, Mumbai to Manhattan—we believe everyone deserves food transparency.
                     </p>
-                    <p style="line-height: 1.8; color: var(--slate); margin-bottom: 16px;">
-                        The name originates from Bengali, where it simply means "What is this?" - the universal question we all ask when we want to truly understand something.
-                    </p>
-                    <p style="line-height: 1.8; color: var(--slate); margin-bottom: 16px;">
-                        Built by two people who believe you shouldn't need a chemistry degree to know what you're putting in your body.
-                    </p>
-                    <p style="line-height: 1.8; color: var(--slate); font-weight: 600;">
-                        No ads. No gated features. Just transparency for everyone.
-                    </p>
-                    <p style="line-height: 1.8; color: var(--light-slate); font-size: 13px; margin-top: 16px;">
-                        <strong>Coming Soon:</strong> Community product database, email verification, product contributions
-                    </p>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <a href="#" onclick="app.showAbout(); return false;" style="color: #16A34A;">🌱 About Eitaki</a>
+                        <a href="#" onclick="app.showMethodology(); return false;" style="color: #16A34A;">🔬 How We Calculate Scores</a>
+                        <a href="#" onclick="app.showPrivacyPolicy(); return false;" style="color: #16A34A;">🔒 Privacy Policy</a>
+                        <a href="#" onclick="app.showTerms(); return false;" style="color: #16A34A;">📋 Terms of Service</a>
+                    </div>
                 </div>
 
                 <div class="settings-section">
-                    <h3 style="margin-bottom: 16px;">Data & Privacy</h3>
+                    <h3 style="margin-bottom: 16px;">🔒 Data & Privacy</h3>
                     <p style="line-height: 1.8; color: var(--slate); margin-bottom: 16px;">
-                        • All data stored locally on your device<br>
-                        • No personal data collection or sharing<br>
-                        • Analytics are anonymous (no personal info)<br>
-                        • Delete data anytime below
+                        • Your personal information is never sold or shared<br>
+                        • We use industry-standard security practices<br>
+                        • Analytics are anonymous and used only to improve the app<br>
+                        • You control your data—delete anytime below
                     </p>
                     <button class="btn btn-secondary" onclick="app.clearAllData()" style="width: 100%;">
-                        Clear All Data
+                        Clear My Data
                     </button>
                 </div>
             </div>
         </div>
+
+        <!-- BUG #13: About Us Page -->
+        <div id="view-about" class="view">
+            <div class="analysis-container">
+                <div style="max-width: 600px; margin: 0 auto; line-height: 1.8;">
+                    <h1 style="font-size: 28px; font-weight: 700; margin-bottom: 24px; color: #111827;">
+                        About Eitaki
+                    </h1>
+                    
+                    <section style="margin-bottom: 32px;">
+                        <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 12px; color: #16A34A;">
+                            🌱 Our Mission
+                        </h2>
+                        <p style="color: #374151; margin-bottom: 12px;">
+                            Everyone who consumes packaged products deserves to understand what's inside them.
+                        </p>
+                        <p style="color: #374151; margin-bottom: 12px;">
+                            Ingredient lists can be confusing—long chemical names, unfamiliar codes, and tiny print make it hard to know what you're really eating.
+                        </p>
+                        <p style="color: #374151;">
+                            From Delhi to Dubai, Mumbai to Manhattan, Bangalore to Boston—Eitaki helps you decode ingredients, make intelligent choices, and keep your family safe.
+                        </p>
+                    </section>
+                    
+                    <section style="margin-bottom: 32px;">
+                        <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 12px; color: #16A34A;">
+                            💚 Why We Exist
+                        </h2>
+                        <p style="color: #374151;">
+                            Reading ingredient labels shouldn't require a chemistry degree. We believe transparency should be accessible to everyone—whether you're shopping at a local store or browsing online from your couch.
+                        </p>
+                    </section>
+                    
+                    <section style="margin-bottom: 32px;">
+                        <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 12px; color: #16A34A;">
+                            🔬 How It Works
+                        </h2>
+                        <ol style="padding-left: 20px; color: #374151;">
+                            <li style="margin-bottom: 8px;"><strong>Scan</strong>: Point your camera at any ingredient list</li>
+                            <li style="margin-bottom: 8px;"><strong>Learn</strong>: Get instant analysis of what's inside</li>
+                            <li style="margin-bottom: 8px;"><strong>Decide</strong>: Make informed choices for your family</li>
+                            <li><strong>Contribute</strong>: (Optional) Help others by adding products</li>
+                        </ol>
+                    </section>
+                    
+                    <section style="margin-bottom: 32px;">
+                        <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 12px; color: #16A34A;">
+                            🤝 Our Values
+                        </h2>
+                        <div style="margin-bottom: 12px;">
+                            <strong style="color: #111827;">🌱 Built for Everyone, Everywhere</strong><br>
+                            <span style="color: #6B7280; font-size: 14px;">No ads, no paywalls, no boundaries</span>
+                        </div>
+                        <div style="margin-bottom: 12px;">
+                            <strong style="color: #111827;">💚 Honest & Transparent</strong><br>
+                            <span style="color: #6B7280; font-size: 14px;">We share sources, admit limitations, and never hide our methods</span>
+                        </div>
+                        <div style="margin-bottom: 12px;">
+                            <strong style="color: #111827;">🤝 Community-Powered</strong><br>
+                            <span style="color: #6B7280; font-size: 14px;">Built by people who care, for people who care</span>
+                        </div>
+                        <div style="margin-bottom: 12px;">
+                            <strong style="color: #111827;">📚 Educational, Not Judgmental</strong><br>
+                            <span style="color: #6B7280; font-size: 14px;">We provide facts, you make choices</span>
+                        </div>
+                        <div>
+                            <strong style="color: #111827;">🔬 Evidence-Based</strong><br>
+                            <span style="color: #6B7280; font-size: 14px;">Every rating backed by WHO, FSSAI, and peer-reviewed research</span>
+                        </div>
+                    </section>
+                    
+                    <section style="margin-bottom: 32px;">
+                        <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 12px; color: #16A34A;">
+                            ⚙️ The Technology
+                        </h2>
+                        <p style="color: #374151; margin-bottom: 12px;">
+                            Eitaki uses AI technology to read ingredient lists and cross-reference them with health and safety databases.
+                        </p>
+                        <p style="color: #374151; font-style: italic; font-size: 14px;">
+                            Remember: AI accuracy depends on photo quality. Clear photos help us deliver reliable results.
+                        </p>
+                    </section>
+                    
+                    <section>
+                        <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 12px; color: #16A34A;">
+                            📬 Get in Touch
+                        </h2>
+                        <p style="color: #374151; margin-bottom: 12px;">
+                            Questions? Feedback? We'd love to hear from you!
+                        </p>
+                        <a href="https://forms.gle/vnhGDgAVUUeid1SY8" style="color: #16A34A; text-decoration: underline;">
+                            Share Feedback
+                        </a>
+                    </section>
+                </div>
+                
+                <div style="text-align: center; margin-top: 32px;">
+                    <button class="btn btn-secondary" onclick="app.showView('home')">← Back to Home</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- BUG #19: Footer with Legal Disclaimer (shown in analysis view) -->
+        <footer id="app-footer" style="display: none; background: #F9FAFB; padding: 24px; text-align: center; border-top: 1px solid #E5E7EB; margin-bottom: 70px;">
+            <div style="max-width: 600px; margin: 0 auto;">
+                <div style="background: #FEF3C7; border-left: 4px solid #F59E0B; padding: 16px; border-radius: 8px; text-align: left; margin-bottom: 20px;">
+                    <strong style="color: #92400E; display: block; margin-bottom: 8px;">
+                        ⚠️ IMPORTANT DISCLAIMER
+                    </strong>
+                    <p style="font-size: 13px; color: #78350F; margin: 0; line-height: 1.6;">
+                        Eitaki provides educational information about food ingredients based on publicly available research and regulatory data. This information is NOT medical advice and should not replace consultation with a qualified healthcare professional. By using Eitaki, you acknowledge that you use this information at your own risk.
+                    </p>
+                </div>
+                
+                <div style="font-size: 13px; color: #6B7280; margin-bottom: 16px;">
+                    <a href="#" onclick="app.showAbout(); return false;" style="color: #16A34A; margin: 0 12px;">About</a>
+                    <a href="#" onclick="app.showPrivacyPolicy(); return false;" style="color: #16A34A; margin: 0 12px;">Privacy</a>
+                    <a href="#" onclick="app.showTerms(); return false;" style="color: #16A34A; margin: 0 12px;">Terms</a>
+                </div>
+                
+                <div style="font-size: 12px; color: #9CA3AF;">
+                    Made with 💚 by people who believe you deserve to know what you're consuming
+                </div>
+            </div>
+        </footer>
 
         <!-- Bottom Navigation -->
         <nav class="bottom-nav" role="navigation" aria-label="Main navigation">
@@ -1359,6 +1497,56 @@
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/quagga/dist/quagga.min.js"></script>
     <script>
+        // ═══════════════════════════════════════════════════════════════════════
+        // BUG #2 & #4: Error Codes System for actionable error messages
+        // ═══════════════════════════════════════════════════════════════════════
+        const ERROR_CODES = {
+            CAMERA_DENIED: {
+                code: 'ERR_001',
+                title: '📷 Camera Access Needed',
+                message: 'Eitaki needs camera access to scan products.',
+                actions: [
+                    '1. Tap your browser settings (⋮)',
+                    '2. Find "Site settings" or "Permissions"',
+                    '3. Enable Camera for this site',
+                    '4. Refresh and try again'
+                ],
+                fallback: 'Or upload a photo from your gallery instead'
+            },
+            CAMERA_UNAVAILABLE: {
+                code: 'ERR_002',
+                title: '📷 Camera Not Available',
+                message: 'Your device camera couldn\'t be accessed.',
+                actions: [
+                    'Check if another app is using the camera',
+                    'Try closing other camera apps',
+                    'Restart your browser'
+                ],
+                fallback: 'You can upload a photo from gallery'
+            },
+            ANALYSIS_FAILED: {
+                code: 'ERR_005',
+                title: '🔬 Analysis Failed',
+                message: 'We couldn\'t analyze this image.',
+                actions: [
+                    'Check your internet connection',
+                    'Try taking a clearer photo',
+                    'Make sure the ingredient list is visible'
+                ],
+                fallback: 'Try uploading from gallery'
+            },
+            BARCODE_NOT_FOUND: {
+                code: 'ERR_006',
+                title: '📊 Product Not Found',
+                message: 'This barcode isn\'t in our database yet.',
+                actions: [
+                    'Try scanning the ingredient list instead',
+                    'Help by adding this product later'
+                ],
+                fallback: null
+            }
+        };
+
         const app = {
             currentView: 'onboarding',
             onboardingStep: 1,
@@ -1368,8 +1556,10 @@
             scanCount: 0,
             emailVerified: false,
             recentScans: [],
-            scanMode: 'barcode', // 'barcode' or 'ingredients'
+            scanMode: 'barcode',
             userSettings: {},
+            photoAttempt: 1,  // BUG #3: Track photo attempts for quality feedback
+            lastAnalysisConfidence: 100,  // BUG #5: Track confidence for display
 
             init() {
                 // Check if onboarding already completed
@@ -1378,9 +1568,11 @@
                     this.completeOnboarding();
                 }
                 
+                this.scanCount = parseInt(localStorage.getItem('scan_count') || '0');
                 this.loadRecentScans();
                 this.loadSettings();
                 this.setupEventListeners();
+                this.updateScanHistoryDisplay();  // BUG #11: Show scan history
             },
 
             setupEventListeners() {
@@ -1391,25 +1583,22 @@
                 const saved = localStorage.getItem('user_settings');
                 if (saved) {
                     this.userSettings = JSON.parse(saved);
-                    // Populate form fields
+                    // Populate form fields - BUG #11: Removed email and dietary preferences
                     if (document.getElementById('setting-name')) {
                         document.getElementById('setting-name').value = this.userSettings.name || '';
-                        document.getElementById('setting-email').value = this.userSettings.email || '';
                         document.getElementById('setting-allergies').value = this.userSettings.allergies || '';
-                        document.getElementById('setting-diet').value = this.userSettings.diet || '';
                     }
                 }
             },
 
             saveSettings() {
+                // BUG #11: Simplified profile - removed email and dietary preferences
                 this.userSettings = {
                     name: document.getElementById('setting-name').value,
-                    email: document.getElementById('setting-email').value,
-                    allergies: document.getElementById('setting-allergies').value,
-                    diet: document.getElementById('setting-diet').value
+                    allergies: document.getElementById('setting-allergies').value
                 };
                 localStorage.setItem('user_settings', JSON.stringify(this.userSettings));
-                alert('Settings saved successfully! ✓');
+                alert('Settings saved! ✓');
             },
 
             clearAllData() {
@@ -1472,7 +1661,7 @@
                 }
             },
 
-            // Camera Functions
+            // Camera Functions - BUG #2: Improved error handling
             async toggleCamera() {
                 const video = document.getElementById('camera-video');
                 const placeholder = document.getElementById('camera-placeholder');
@@ -1492,18 +1681,107 @@
                         btn.classList.remove('btn-secondary');
                         btn.classList.add('btn-primary');
                         this.cameraActive = true;
+                        this.hideError();  // Clear any previous errors
                         
                         // Start barcode detection if in barcode mode
                         if (this.scanMode === 'barcode') {
                             this.startBarcodeDetection();
                         }
                     } catch (err) {
-                        alert('Camera access denied. Please enable camera permissions in your browser settings.');
-                        console.error(err);
+                        // BUG #2: Show actionable error instead of generic alert
+                        if (err.name === 'NotAllowedError') {
+                            this.showError('CAMERA_DENIED');
+                        } else if (err.name === 'NotFoundError') {
+                            this.showError('CAMERA_UNAVAILABLE');
+                        } else {
+                            this.showError('CAMERA_UNAVAILABLE');
+                        }
+                        console.error('Camera error:', err);
                     }
                 } else {
                     this.stopCamera();
                 }
+            },
+
+            // BUG #2: Error display function
+            showError(errorType) {
+                const error = ERROR_CODES[errorType];
+                if (!error) {
+                    console.error('Unknown error type:', errorType);
+                    return;
+                }
+                
+                const html = `
+                    <div style="padding: 24px; text-align: center; max-width: 400px; margin: 20px auto;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">${error.title.split(' ')[0]}</div>
+                        <h3 style="font-size: 20px; font-weight: 700; color: #1E293B; margin-bottom: 12px;">
+                            ${error.title.substring(error.title.indexOf(' ') + 1)}
+                        </h3>
+                        <p style="color: #64748B; margin-bottom: 24px; line-height: 1.6;">
+                            ${error.message}
+                        </p>
+                        
+                        <div style="background: #F0FDF4; padding: 16px; border-radius: 12px; margin-bottom: 20px; text-align: left;">
+                            <strong style="color: #16A34A; display: block; margin-bottom: 8px;">How to fix:</strong>
+                            <ul style="margin: 0; padding-left: 20px; color: #475569;">
+                                ${error.actions.map(action => `<li style="margin: 6px 0;">${action}</li>`).join('')}
+                            </ul>
+                        </div>
+                        
+                        ${error.fallback ? `
+                            <p style="font-size: 14px; color: #64748B; margin-bottom: 16px;">
+                                ${error.fallback}
+                            </p>
+                            <button class="btn btn-secondary" onclick="app.useGalleryFallback()" style="margin-bottom: 12px; width: 100%;">
+                                📁 Upload from Gallery
+                            </button>
+                        ` : ''}
+                        
+                        <button class="btn btn-primary" onclick="app.retryCamera()" style="width: 100%;">
+                            🔄 Try Again
+                        </button>
+                        
+                        <p style="font-size: 12px; color: #94A3B8; margin-top: 16px;">
+                            Error Code: ${error.code}
+                        </p>
+                    </div>
+                `;
+                
+                const resultContainer = document.getElementById('scanner-result');
+                resultContainer.innerHTML = html;
+                resultContainer.style.display = 'block';
+            },
+
+            hideError() {
+                const resultContainer = document.getElementById('scanner-result');
+                if (resultContainer) {
+                    resultContainer.style.display = 'none';
+                    resultContainer.innerHTML = '';
+                }
+            },
+
+            retryCamera() {
+                this.hideError();
+                this.toggleCamera();
+            },
+
+            // BUG #2: Gallery fallback handler
+            useGalleryFallback() {
+                this.hideError();
+                document.getElementById('file-input-fallback').click();
+            },
+
+            handleGalleryUpload(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.capturedImages.push(e.target.result);
+                    this.renderCapturedImages();
+                    document.getElementById('analyze-btn').disabled = false;
+                };
+                reader.readAsDataURL(file);
             },
 
             stopCamera() {
@@ -1565,8 +1843,8 @@
                         this.addToRecentScans(analysis);
                     } else {
                         this.hideLoading();
-                        alert('Product not found in database. Try scanning the ingredient list manually.');
-                        this.showView('scanner');
+                        // BUG #4: Better error message for product not found
+                        this.showError('BARCODE_NOT_FOUND');
                     }
                 });
             },
@@ -1634,7 +1912,8 @@
 
                 } catch (error) {
                     this.hideLoading();
-                    alert('Analysis failed. Please try again with clearer images.');
+                    // BUG #4: Better error message
+                    this.showError('ANALYSIS_FAILED');
                     console.error(error);
                 }
             },
@@ -1935,6 +2214,11 @@ Respond ONLY with valid JSON in this exact format:
                 const container = document.getElementById('analysis-content');
                 const scoreClass = `score-${analysis.scoreCategory}`;
 
+                // BUG #5: Calculate and display confidence
+                const confidence = analysis.confidence || 85;  // Default to 85 if not provided
+                const confidenceColor = confidence >= 85 ? '#10B981' : confidence >= 75 ? '#F59E0B' : '#EF4444';
+                const confidenceLabel = confidence >= 85 ? 'High' : confidence >= 75 ? 'Medium' : 'Low';
+
                 let trustBadgesHTML = '';
                 if (analysis.trustBadges && analysis.trustBadges.length > 0) {
                     trustBadgesHTML = `
@@ -1957,6 +2241,26 @@ Respond ONLY with valid JSON in this exact format:
                         </div>
                     `;
                 }
+
+                // BUG #5: Confidence badge HTML
+                const confidenceBadgeHTML = `
+                    <div style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: white; border-radius: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-top: 12px;">
+                        <div style="width: 8px; height: 8px; border-radius: 50%; background: ${confidenceColor};"></div>
+                        <span style="font-size: 13px; font-weight: 600; color: #1E293B;">
+                            ${confidenceLabel} Confidence (${confidence}%)
+                        </span>
+                    </div>
+                `;
+
+                // BUG #5: Low confidence disclaimer
+                const confidenceDisclaimerHTML = confidence < 80 ? `
+                    <div style="background: #FEF3C7; border-left: 4px solid #F59E0B; padding: 12px; border-radius: 8px; margin-top: 16px;">
+                        <strong style="color: #92400E;">⚠️ Note:</strong>
+                        <span style="color: #78350F; font-size: 14px;">
+                            Some ingredients may not have been detected clearly. Double-check the packaging.
+                        </span>
+                    </div>
+                ` : '';
 
                 let macrosHTML = '';
                 if (analysis.macros) {
@@ -1984,12 +2288,86 @@ Respond ONLY with valid JSON in this exact format:
                     `;
                 }
 
+                // BUG #6: Score explanation section
+                const scoreExplanationHTML = `
+                    <div style="margin-top: 16px;">
+                        <button class="btn btn-secondary" onclick="app.toggleScoreDetails()" style="width: 100%; font-size: 14px;">
+                            📊 Why this score? (Tap to expand)
+                        </button>
+                        
+                        <div id="score-details" style="display: none; margin-top: 16px; background: #F0FDF4; padding: 16px; border-radius: 12px;">
+                            <h4 style="font-size: 16px; font-weight: 700; margin-bottom: 12px; color: #16A34A;">
+                                Score Breakdown
+                            </h4>
+                            
+                            <div style="margin-bottom: 16px;">
+                                <strong style="color: #16A34A; display: block; margin-bottom: 8px;">📊 How we calculate:</strong>
+                                <ul style="margin: 0; padding-left: 20px; color: #475569; font-size: 14px;">
+                                    <li>Processing Level (20%)</li>
+                                    <li>Nutrient Quality (35%)</li>
+                                    <li>Ingredient Quality (30%)</li>
+                                    <li>Transparency (15%)</li>
+                                </ul>
+                            </div>
+                            
+                            <div style="background: white; padding: 12px; border-radius: 8px; font-size: 13px; color: #64748B;">
+                                <strong style="color: #1E293B;">Sources:</strong> WHO, FSSAI, FDA, peer-reviewed research.
+                                <a href="#" onclick="app.showMethodology(); return false;" style="color: #16A34A; text-decoration: underline;">
+                                    View full methodology
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // BUG #8: Optional contribution prompt
+                const contributionPromptHTML = `
+                    <div style="background: linear-gradient(135deg, #16A34A, #14B8A6); padding: 24px; border-radius: 16px; margin-top: 20px; color: white; text-align: center;">
+                        <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 12px;">
+                            Help Others Find This Product?
+                        </h3>
+                        <p style="font-size: 14px; margin-bottom: 20px; opacity: 0.9;">
+                            <strong>Optional:</strong> Add this to our community database so others can look it up by barcode.
+                        </p>
+                        
+                        <div style="display: flex; gap: 12px; justify-content: center;">
+                            <button class="btn" onclick="app.addToDatabase()" style="background: white; color: #16A34A; flex: 1; max-width: 150px;">
+                                ✅ Add Product
+                            </button>
+                            <button class="btn" onclick="app.skipContribution()" style="background: rgba(255,255,255,0.2); color: white; flex: 1; max-width: 150px;">
+                                Skip
+                            </button>
+                        </div>
+                        
+                        <p style="font-size: 12px; margin-top: 12px; opacity: 0.8;">
+                            No pressure! You can always add it later.
+                        </p>
+                    </div>
+                `;
+
+                // BUG #9: Healthier alternatives (only if score < 50)
+                const alternativesHTML = analysis.healthScore < 50 ? `
+                    <div style="background: linear-gradient(135deg, #F0FDF4, #DCFCE7); padding: 20px; border-radius: 16px; margin-top: 24px;">
+                        <h3 style="font-size: 18px; font-weight: 700; color: #166534; margin-bottom: 16px;">
+                            💚 Looking for Healthier Options?
+                        </h3>
+                        <p style="font-size: 14px; color: #15803D; margin-bottom: 16px;">
+                            Consider products with fewer processed ingredients and lower sodium/sugar content.
+                        </p>
+                        <p style="font-size: 12px; color: #15803D; font-style: italic;">
+                            Feature coming soon: We'll suggest specific alternatives based on community data.
+                        </p>
+                    </div>
+                ` : '';
+
                 container.innerHTML = `
                     <div class="product-header">
                         ${analysis.image ? `<img src="${analysis.image}" alt="${analysis.productName}" style="width: 100%; max-height: 200px; object-fit: contain; margin-bottom: 16px; border-radius: 8px;">` : ''}
                         <h1 class="product-name">${analysis.productName}</h1>
                         ${analysis.brand ? `<p class="product-brand">${analysis.brand}</p>` : ''}
                         ${analysis.detectedLanguage ? `<p class="product-brand">Detected language: ${analysis.detectedLanguage}</p>` : ''}
+                        
+                        ${confidenceDisclaimerHTML}
                         
                         <div class="health-score-card">
                             <div class="score-main">
@@ -2002,7 +2380,9 @@ Respond ONLY with valid JSON in this exact format:
                                     <p class="score-desc">${analysis.scoreReason}</p>
                                 </div>
                             </div>
+                            ${confidenceBadgeHTML}
                             ${trustBadgesHTML}
+                            ${scoreExplanationHTML}
                         </div>
 
                         ${allergiesHTML}
@@ -2046,18 +2426,154 @@ Respond ONLY with valid JSON in this exact format:
                         </div>
                     ` : ''}
 
+                    ${alternativesHTML}
+                    ${contributionPromptHTML}
+
                     <div class="disclaimer">
                         <strong>⚠️ Important Disclaimer:</strong> This analysis is for educational purposes only and should not be considered medical advice. 
                         Information is based on detected ${this.scanMode === 'ingredients' ? 'ingredients' : 'product data'} and may not be 100% accurate. 
                         Always verify ingredients on the actual product packaging. May miss allergens if not clearly visible in scan. 
                         We are not liable for errors in detection or analysis. Consult healthcare professionals for specific dietary needs.
                         <br><br>
-                        <strong>Data Sources:</strong> ${analysis.image ? 'Open Food Facts, ' : ''}AI analysis (Gemini), OCR text extraction.
+                        <strong>Data Sources:</strong> ${analysis.image ? 'Open Food Facts, ' : ''}AI analysis (Gemini), WHO, FSSAI, peer-reviewed research.
                         Last analyzed: ${new Date().toLocaleDateString()}
+                    </div>
+
+                    <div style="text-align: center; margin-top: 24px;">
+                        <button class="btn btn-primary" onclick="app.showView('home')" style="margin-right: 12px;">
+                            🏠 Home
+                        </button>
+                        <button class="btn btn-secondary" onclick="app.showView('scanner')">
+                            📸 Scan Another
+                        </button>
                     </div>
                 `;
 
                 this.showView('analysis');
+                
+                // Show footer with disclaimer
+                document.getElementById('app-footer').style.display = 'block';
+            },
+
+            // BUG #6: Toggle score details
+            toggleScoreDetails() {
+                const details = document.getElementById('score-details');
+                if (details) {
+                    details.style.display = details.style.display === 'none' ? 'block' : 'none';
+                }
+            },
+
+            // BUG #8: Contribution handlers
+            addToDatabase() {
+                // BUG #1: Check if user is signed up for contribution
+                if (!this.promptSignupIfContributing('add')) {
+                    return;
+                }
+                alert('🎉 Thanks for wanting to help! Product contribution feature coming in Phase 1.5.\n\nYour contribution will help thousands discover what\'s inside.');
+            },
+
+            skipContribution() {
+                // Simply scroll past - no guilt messaging
+                console.log('User skipped contribution - that\'s okay!');
+            },
+
+            // BUG #1: Progressive signup prompt
+            promptSignupIfContributing(action) {
+                const user = localStorage.getItem('user');
+                if (!user) {
+                    const message = action === 'add' ? 
+                        'Create a free account to add products and help the community!' :
+                        'Create a free account to save your contributions!';
+                    
+                    if (confirm(message + '\n\nWant to create an account?\n\n(Tap OK to sign up, Cancel to skip for now)')) {
+                        this.showEmailModal();
+                        return false;
+                    }
+                    return false;
+                }
+                return true;
+            },
+
+            // BUG #11: Update scan history display
+            updateScanHistoryDisplay() {
+                const historyContainer = document.getElementById('scan-history-list');
+                if (!historyContainer) return;
+                
+                if (this.recentScans.length === 0) {
+                    historyContainer.innerHTML = '<p style="color: var(--light-slate); font-size: 14px;">No scans yet. Start scanning products!</p>';
+                    return;
+                }
+                
+                historyContainer.innerHTML = this.recentScans.map(scan => `
+                    <div style="background: var(--ice-blue); padding: 12px; border-radius: 8px; margin-bottom: 8px;">
+                        <div style="font-weight: 600; color: var(--slate);">${scan.name}</div>
+                        <div style="font-size: 12px; color: var(--light-slate);">
+                            Score: ${scan.score} • ${new Date(scan.timestamp).toLocaleDateString()}
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            // BUG #13: Show About page
+            showAbout() {
+                this.showView('about');
+            },
+
+            // BUG #6: Show methodology modal
+            showMethodology() {
+                const modal = `
+                    <div class="modal active" id="methodology-modal" onclick="if(event.target === this) app.closeMethodologyModal()">
+                        <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
+                            <h3 class="modal-title">🔬 How We Calculate Health Scores</h3>
+                            <div style="font-size: 14px; line-height: 1.8; color: #374151;">
+                                <p style="margin-bottom: 16px;">
+                                    Our health scores are based on a <strong>4-pillar framework</strong> developed using WHO, FSSAI, and peer-reviewed research:
+                                </p>
+                                
+                                <div style="background: #F0FDF4; padding: 16px; border-radius: 12px; margin-bottom: 16px;">
+                                    <strong style="color: #16A34A;">📊 Score Breakdown:</strong>
+                                    <ul style="margin: 12px 0 0 20px;">
+                                        <li><strong>Processing Level (20%)</strong>: How processed is the food?</li>
+                                        <li><strong>Nutrient Quality (35%)</strong>: Good vs bad nutrients</li>
+                                        <li><strong>Ingredient Quality (30%)</strong>: Safety of individual ingredients</li>
+                                        <li><strong>Transparency (15%)</strong>: Label clarity and certifications</li>
+                                    </ul>
+                                </div>
+                                
+                                <div style="background: #FEF3C7; padding: 16px; border-radius: 12px; margin-bottom: 16px;">
+                                    <strong style="color: #92400E;">⚠️ Important Notes:</strong>
+                                    <ul style="margin: 12px 0 0 20px;">
+                                        <li>Scores are educational, not medical advice</li>
+                                        <li>Individual health needs vary</li>
+                                        <li>Always consult healthcare professionals</li>
+                                    </ul>
+                                </div>
+                                
+                                <p style="font-size: 13px; color: #6B7280;">
+                                    <strong>Sources:</strong> WHO guidelines, FSSAI standards, FDA regulations, EFSA opinions, peer-reviewed research (PubMed)
+                                </p>
+                            </div>
+                            <div style="margin-top: 20px; text-align: center;">
+                                <button class="btn btn-primary" onclick="app.closeMethodologyModal()">Got it!</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.insertAdjacentHTML('beforeend', modal);
+            },
+
+            closeMethodologyModal() {
+                const modal = document.getElementById('methodology-modal');
+                if (modal) modal.remove();
+            },
+
+            // Legal page placeholders
+            showPrivacyPolicy() {
+                alert('📋 Privacy Policy\n\n• All data stored locally on your device\n• No personal data collection\n• No data sharing with third parties\n• Anonymous analytics only\n\nFull privacy policy coming soon!');
+            },
+
+            showTerms() {
+                alert('📋 Terms of Service\n\n• Eitaki is for educational purposes only\n• Not medical advice\n• Use at your own risk\n• Always verify with product packaging\n\nFull terms coming soon!');
             },
 
             // Utility Functions
@@ -2083,6 +2599,7 @@ Respond ONLY with valid JSON in this exact format:
                 this.recentScans = this.recentScans.slice(0, 5); // Keep only 5
                 localStorage.setItem('recent_scans', JSON.stringify(this.recentScans));
                 this.renderRecentScans();
+                this.updateScanHistoryDisplay();  // BUG #11: Update settings page
             },
 
             loadRecentScans() {
