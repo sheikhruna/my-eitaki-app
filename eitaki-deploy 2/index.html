@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#16A34A">
     <meta name="description" content="Eitaki - Decode what's really inside your products. Scan ingredients and understand what you're consuming.">
-    <title>Eitaki - What's Really Inside?</title>
+    <title>Eitaki - Decode Every Ingredient</title>
     
     <!--
     ═══════════════════════════════════════════════════════════════════════
-    🔍 Eitaki - What's Really Inside?
+    🌱 Eitaki - Decode Every Ingredient
     ═══════════════════════════════════════════════════════════════════════
     
     💰 ANALYSIS SOLUTION
@@ -240,13 +240,13 @@
         .btn-primary {
             background: var(--deep-teal);
             color: white;
-            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
         }
 
         .btn-primary:hover {
-            background: #0F766E;
+            background: #15803D;
             transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(13, 148, 136, 0.4);
+            box-shadow: 0 6px 16px rgba(22, 163, 74, 0.4);
         }
 
         .btn-secondary {
@@ -296,7 +296,7 @@
         }
 
         .scan-btn-large {
-            background: linear-gradient(135deg, var(--deep-teal), #0F766E);
+            background: linear-gradient(135deg, var(--deep-teal), #15803D);
             color: white;
             border: none;
             padding: 20px 48px;
@@ -304,7 +304,7 @@
             font-size: 20px;
             font-weight: 700;
             cursor: pointer;
-            box-shadow: 0 8px 24px rgba(13, 148, 136, 0.3);
+            box-shadow: 0 8px 24px rgba(22, 163, 74, 0.3);
             transition: all 0.3s;
             display: inline-flex;
             align-items: center;
@@ -314,7 +314,7 @@
 
         .scan-btn-large:hover {
             transform: translateY(-3px);
-            box-shadow: 0 12px 32px rgba(13, 148, 136, 0.4);
+            box-shadow: 0 12px 32px rgba(22, 163, 74, 0.4);
         }
 
         .secondary-action {
@@ -421,7 +421,7 @@
         .mode-btn.active {
             background: var(--deep-teal);
             color: white;
-            box-shadow: 0 2px 8px rgba(13, 148, 136, 0.3);
+            box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
         }
 
         .camera-preview {
@@ -449,7 +449,7 @@
             align-items: center;
             justify-content: center;
             color: white;
-            background: linear-gradient(135deg, var(--deep-teal), #0F766E);
+            background: linear-gradient(135deg, var(--deep-teal), #15803D);
         }
 
         .placeholder-icon {
@@ -460,6 +460,12 @@
         .placeholder-text {
             font-size: 16px;
             opacity: 0.9;
+        }
+
+        .placeholder-subtext {
+            font-size: 13px;
+            opacity: 0.7;
+            margin-top: 8px;
         }
 
         .camera-overlay {
@@ -1087,6 +1093,164 @@
             white-space: nowrap;
             border-width: 0;
         }
+    
+        /* ═══════════════════════════════════════════════════════════════
+           V1.2.0 NEW STYLES
+           ═══════════════════════════════════════════════════════════════ */
+        
+        /* Floating Mode Badge */
+        .mode-badge {
+            position: fixed;
+            top: 80px;
+            left: 16px;
+            z-index: 200;
+            background: rgba(22, 163, 74, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+            transition: all 0.3s ease;
+            display: none;
+            align-items: center;
+            gap: 8px;
+        }
+        .mode-badge.visible { display: flex; }
+        .mode-badge:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(22, 163, 74, 0.4); }
+        .mode-badge.pulsing { animation: modePulse 2s ease-in-out infinite; }
+        @keyframes modePulse {
+            0%, 100% { box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3); }
+            50% { box-shadow: 0 4px 24px rgba(22, 163, 74, 0.6); }
+        }
+        .mode-badge-arrow { font-size: 10px; transition: transform 0.2s; }
+        .mode-badge.menu-open .mode-badge-arrow { transform: rotate(180deg); }
+        
+        /* Mode Menu */
+        .mode-menu {
+            position: fixed;
+            top: 130px;
+            left: 16px;
+            z-index: 199;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            padding: 8px 0;
+            min-width: 180px;
+            opacity: 0;
+            transform: translateY(-10px) scale(0.95);
+            transition: all 0.2s;
+            pointer-events: none;
+        }
+        .mode-menu.visible { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+        .mode-menu-item { padding: 14px 20px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: background 0.15s; }
+        .mode-menu-item:hover { background: #F0FDF4; }
+        .mode-menu-item.active { color: #16A34A; font-weight: 600; }
+        
+        /* Glass Bottom Bar */
+        .scanner-bottom-bar {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 150;
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.3);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+            border-radius: 40px;
+            padding: 12px 24px;
+            display: none;
+            align-items: center;
+            gap: 20px;
+        }
+        .scanner-bottom-bar.visible { display: flex; }
+        .bar-btn {
+            position: relative;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            border: none;
+            background: #F0FDF4;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            transition: all 0.2s;
+        }
+        .bar-btn:hover { background: #DCFCE7; transform: scale(1.05); }
+        .bar-btn.capture { width: 68px; height: 68px; background: #16A34A; color: white; font-size: 28px; box-shadow: 0 4px 16px rgba(22,163,74,0.4); }
+        .bar-btn.capture:hover { background: #15803D; }
+        .bar-btn .badge { position: absolute; top: -4px; right: -4px; background: #EF4444; color: white; font-size: 11px; font-weight: 700; min-width: 20px; height: 20px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        
+        /* Toast */
+        .toast-container { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); z-index: 9999; pointer-events: none; }
+        .toast { background: rgba(30,41,59,0.95); color: white; padding: 14px 24px; border-radius: 28px; font-size: 14px; font-weight: 500; opacity: 0; transform: translateY(20px); transition: all 0.3s; pointer-events: auto; margin-bottom: 8px; }
+        .toast.visible { opacity: 1; transform: translateY(0); }
+        .toast.success { background: rgba(16,185,129,0.95); }
+        .toast.warning { background: rgba(245,158,11,0.95); color: #1E293B; }
+        .toast.error { background: rgba(239,68,68,0.95); }
+        
+        /* Quality Indicator */
+        .quality-indicator { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.75); color: white; padding: 8px 16px; border-radius: 24px; font-size: 12px; font-weight: 600; display: none; align-items: center; gap: 8px; }
+        .quality-indicator.visible { display: flex; }
+        .quality-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .quality-dot.good { background: #10B981; }
+        .quality-dot.fair { background: #F59E0B; }
+        .quality-dot.poor { background: #EF4444; }
+        
+        /* Auto-analyze Badge */
+        .auto-analyze-badge { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); background: rgba(22,163,74,0.95); color: white; padding: 16px 24px; border-radius: 28px; font-size: 15px; font-weight: 600; display: none; align-items: center; gap: 10px; z-index: 20; }
+        .auto-analyze-badge.visible { display: flex; animation: modePulse 1.5s infinite; }
+        
+        /* Swipeable Cards */
+        .ingredient-carousel { position: relative; overflow: hidden; touch-action: pan-y; }
+        .ingredient-cards-wrapper { display: flex; transition: transform 0.3s ease; }
+        .ingredient-card { flex: 0 0 100%; min-width: 100%; padding: 0 16px; }
+        .carousel-nav { display: flex; justify-content: center; align-items: center; gap: 16px; padding: 16px; }
+        .carousel-dots { display: flex; gap: 6px; }
+        .carousel-dot { width: 8px; height: 8px; border-radius: 50%; background: #D1D5DB; transition: all 0.2s; cursor: pointer; }
+        .carousel-dot.active { background: #16A34A; width: 24px; border-radius: 4px; }
+        .carousel-arrow { width: 36px; height: 36px; border-radius: 50%; border: 1px solid #E5E7EB; background: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: all 0.2s; }
+        .carousel-arrow:hover:not(:disabled) { border-color: #16A34A; color: #16A34A; }
+        .carousel-arrow:disabled { opacity: 0.3; cursor: not-allowed; }
+        
+        /* Voice Input */
+        .input-with-mic { position: relative; }
+        .input-with-mic input { padding-right: 48px; }
+        .mic-btn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 50%; border: none; background: #F3F4F6; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: all 0.2s; }
+        .mic-btn:hover { background: #F0FDF4; }
+        .mic-btn.listening { background: #EF4444; color: white; animation: modePulse 1s infinite; }
+        .mic-btn.hidden { display: none; }
+        
+        /* Confidence Badge */
+        .confidence-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-top: 12px; }
+        .confidence-badge.high { background: rgba(16,185,129,0.15); color: #059669; }
+        .confidence-badge.medium { background: rgba(245,158,11,0.15); color: #D97706; }
+        .confidence-badge.low { background: rgba(239,68,68,0.15); color: #DC2626; }
+        
+        /* Safety Levels */
+        .safety-level { display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .safety-level.safe { background: rgba(16,185,129,0.15); color: #059669; }
+        .safety-level.moderate { background: rgba(245,158,11,0.15); color: #D97706; }
+        .safety-level.limit { background: rgba(249,115,22,0.15); color: #EA580C; }
+        .safety-level.avoid { background: rgba(239,68,68,0.15); color: #DC2626; }
+        
+        /* Score Explainer */
+        .score-explainer { margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(0,0,0,0.1); }
+        .explainer-toggle { background: none; border: none; color: #16A34A; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 0; }
+        .explainer-content { margin-top: 16px; padding: 16px; background: white; border-radius: 8px; display: none; }
+        .explainer-content.visible { display: block; }
+        .pillar-item { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
+        .pillar-weight { width: 40px; height: 40px; border-radius: 8px; background: #F0FDF4; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #16A34A; flex-shrink: 0; }
+        .pillar-name { font-size: 14px; font-weight: 600; color: #1E293B; }
+        .pillar-desc { font-size: 12px; color: #64748B; }
+    
     </style>
 </head>
 <body>
@@ -1159,7 +1323,7 @@
             <div class="home-hero">
                 <div class="hero-icon" role="img" aria-label="Plant seedling">🌱</div>
                 <h1 class="hero-title">
-                    What's Really Inside<br>Your Products?
+                    Decode Every<br>Ingredient
                 </h1>
                 <p class="hero-subtitle">
                     Scan any product and decode complex ingredients in seconds
@@ -1205,6 +1369,17 @@
 
         <!-- Scanner View -->
         <div id="view-scanner" class="view">
+            <!-- Floating Mode Badge (v1.2.0) -->
+            <div class="mode-badge" id="mode-badge" onclick="app.toggleModeMenu()">
+                <span id="mode-badge-icon">📋</span>
+                <span id="mode-badge-text">Ingredients</span>
+                <span class="mode-badge-arrow">▼</span>
+            </div>
+            <div class="mode-menu" id="mode-menu">
+                <div class="mode-menu-item active" id="menu-ingredients" onclick="app.selectMode('ingredients')">📋 Ingredients</div>
+                <div class="mode-menu-item" id="menu-barcode" onclick="app.selectMode('barcode')">📊 Barcode</div>
+            </div>
+
             <div class="scanner-container">
                 <div class="scanner-header">
                     <h2 class="scanner-title">Scan Product</h2>
@@ -1224,16 +1399,20 @@
                     <video id="camera-video" class="camera-video" autoplay playsinline style="display:none;" aria-label="Camera preview"></video>
                     <div id="camera-placeholder" class="camera-placeholder">
                         <div class="placeholder-icon">📸</div>
-                        <div class="placeholder-text">Tap "Start Camera" below</div>
+                        <div class="placeholder-text">Camera will start automatically</div>
+                        <div class="placeholder-subtext">Or tap Gallery below to upload</div>
                     </div>
+                    
+                    <div class="quality-indicator" id="quality-indicator">
+                        <span class="quality-dot" id="quality-dot"></span>
+                        <span id="quality-text">Checking...</span>
+                    </div>
+                    <div class="auto-analyze-badge" id="auto-analyze-badge">✨ Auto-analyzing...</div>
                     <div class="camera-overlay" style="display:none;" id="camera-overlay">
                         <div class="scan-guide" role="status" aria-live="polite" id="scan-guide-text">
                             📊 Point at barcode for instant lookup
                         </div>
                         <div class="capture-area" aria-hidden="true"></div>
-                        <div class="camera-controls">
-                            <button class="capture-btn" id="capture-btn" aria-label="Capture photo">📷</button>
-                        </div>
                     </div>
                 </div>
 
@@ -1245,15 +1424,16 @@
                 <!-- BUG #3: Scanner result area for quality feedback and errors -->
                 <div id="scanner-result" style="display: none;"></div>
 
-                <div class="action-buttons">
-                    <button class="btn btn-secondary btn-full" id="toggle-camera-btn" onclick="app.toggleCamera()">
-                        Start Camera
-                    </button>
-                    <button class="btn btn-primary btn-full" id="analyze-btn" onclick="app.analyzeProduct()" disabled>
-                        Analyze
-                    </button>
-                </div>
+                <!-- v1.2.0: Old action buttons removed - using glass morphism bottom bar instead -->
             </div>
+        
+            <!-- Glass Morphism Bottom Bar (v1.2.0) -->
+            <div class="scanner-bottom-bar" id="scanner-bottom-bar">
+                <button class="bar-btn" onclick="app.openGallery()" aria-label="Gallery">🖼️<span class="badge" id="photo-count-badge" style="display:none;">0</span></button>
+                <button class="bar-btn capture" id="capture-btn-main" onclick="app.capturePhoto()" aria-label="Capture">📷</button>
+                <button class="bar-btn" id="analyze-btn-bar" onclick="app.analyzeProduct()" aria-label="Analyze">✓</button>
+            </div>
+
         </div>
 
         <!-- Analysis View -->
@@ -1273,11 +1453,11 @@
                     <h3 style="margin-bottom: 16px;">📸 Profile</h3>
                     <div class="settings-item">
                         <div class="settings-label">Name</div>
-                        <input type="text" class="settings-input" id="setting-name" placeholder="Your name">
+                        <div class="input-with-mic"><input type="text" class="settings-input" id="setting-name" placeholder="Your name"><button class="mic-btn" onclick="app.startVoiceInput('setting-name')" aria-label="Voice">🎤</button></div>
                     </div>
                     <div class="settings-item">
                         <div class="settings-label">Food Allergies</div>
-                        <input type="text" class="settings-input" id="setting-allergies" placeholder="e.g., peanuts, dairy, gluten">
+                        <div class="input-with-mic"><input type="text" class="settings-input" id="setting-allergies" placeholder="e.g., peanuts, dairy, gluten">
                         <p style="font-size: 12px; color: var(--light-slate); margin-top: 4px;">
                             Separate multiple allergies with commas
                         </p>
@@ -1469,6 +1649,10 @@
             </button>
         </nav>
 
+        
+        <!-- Toast Container (v1.2.0) -->
+        <div class="toast-container" id="toast-container"></div>
+
         <!-- Loading Overlay -->
         <div class="loading-overlay" id="loading-overlay" role="alert" aria-live="assertive">
             <div class="loading-content">
@@ -1536,14 +1720,15 @@
                 fallback: 'Try uploading from gallery'
             },
             BARCODE_NOT_FOUND: {
-                code: 'ERR_006',
+                code: 'ERR_003',
                 title: '📊 Product Not Found',
                 message: 'This barcode isn\'t in our database yet.',
                 actions: [
                     'Try scanning the ingredient list instead',
                     'Help by adding this product later'
                 ],
-                fallback: null
+                fallback: 'switchToIngredients',  // v1.2.0: Auto-switch action
+                fallbackText: '📋 Scan Ingredients Instead'
             }
         };
 
@@ -1556,7 +1741,7 @@
             scanCount: 0,
             emailVerified: false,
             recentScans: [],
-            scanMode: 'barcode',
+            scanMode: 'ingredients',  // v1.2.0: Default to ingredients mode (our differentiator)
             userSettings: {},
             photoAttempt: 1,  // BUG #3: Track photo attempts for quality feedback
             lastAnalysisConfidence: 100,  // BUG #5: Track confidence for display
@@ -1591,6 +1776,174 @@
                 }
             },
 
+
+            // ═══════════════════════════════════════════════════════════════
+            // V1.2.0 NEW FUNCTIONS
+            // ═══════════════════════════════════════════════════════════════
+            
+            QUALITY_THRESHOLDS: { AUTO_ANALYZE: 95, GOOD: 85, ACCEPTABLE: 80, MARGINAL: 75 },
+            photoAttempts: 0,
+            maxPhotos: 3,
+            currentIngredientIndex: 0,
+            touchStartX: 0,
+            
+            toggleModeMenu() {
+                const menu = document.getElementById('mode-menu');
+                const badge = document.getElementById('mode-badge');
+                menu?.classList.toggle('visible');
+                badge?.classList.toggle('menu-open');
+                if (!localStorage.getItem('mode_badge_discovered')) {
+                    localStorage.setItem('mode_badge_discovered', 'true');
+                    badge?.classList.remove('pulsing');
+                }
+            },
+            
+            selectMode(mode) {
+                this.scanMode = mode;
+                localStorage.setItem('scan_mode', mode);
+                this.updateModeUI();
+                document.getElementById('mode-menu')?.classList.remove('visible');
+                document.getElementById('mode-badge')?.classList.remove('menu-open');
+                this.showToast(`Switched to ${mode === 'barcode' ? 'Barcode' : 'Ingredients'} mode`);
+            },
+            
+            updateModeUI() {
+                const icon = document.getElementById('mode-badge-icon');
+                const text = document.getElementById('mode-badge-text');
+                if (this.scanMode === 'ingredients') {
+                    if (icon) icon.textContent = '📋';
+                    if (text) text.textContent = 'Ingredients';
+                    document.getElementById('menu-ingredients')?.classList.add('active');
+                    document.getElementById('menu-barcode')?.classList.remove('active');
+                } else {
+                    if (icon) icon.textContent = '📊';
+                    if (text) text.textContent = 'Barcode';
+                    document.getElementById('menu-barcode')?.classList.add('active');
+                    document.getElementById('menu-ingredients')?.classList.remove('active');
+                }
+            },
+            
+            showToast(message, type = 'info', duration = 3000) {
+                const container = document.getElementById('toast-container');
+                if (!container) return;
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.textContent = message;
+                container.appendChild(toast);
+                requestAnimationFrame(() => toast.classList.add('visible'));
+                setTimeout(() => { toast.classList.remove('visible'); setTimeout(() => toast.remove(), 300); }, duration);
+            },
+            
+            async checkPhotoQuality(imageData) {
+                return new Promise((resolve) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        const scale = Math.min(200 / img.width, 200 / img.height);
+                        canvas.width = img.width * scale;
+                        canvas.height = img.height * scale;
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+                        let totalBrightness = 0;
+                        for (let i = 0; i < data.length; i += 4) totalBrightness += (0.299*data[i] + 0.587*data[i+1] + 0.114*data[i+2]);
+                        const avgBrightness = totalBrightness / (data.length / 4);
+                        const brightnessScore = Math.min(100, (avgBrightness / 128) * 100);
+                        let sumSquares = 0;
+                        for (let i = 0; i < data.length; i += 4) { const lum = 0.299*data[i] + 0.587*data[i+1] + 0.114*data[i+2]; sumSquares += Math.pow(lum - avgBrightness, 2); }
+                        const contrastScore = Math.min(100, (Math.sqrt(sumSquares / (data.length / 4)) / 50) * 100);
+                        let laplacianSum = 0;
+                        for (let y = 1; y < canvas.height - 1; y++) for (let x = 1; x < canvas.width - 1; x++) { const idx = (y * canvas.width + x) * 4; laplacianSum += Math.abs(4*data[idx] - data[idx-4] - data[idx+4] - data[idx-canvas.width*4] - data[idx+canvas.width*4]); }
+                        const sharpnessScore = Math.min(100, (laplacianSum / ((canvas.width-2) * (canvas.height-2))) * 2);
+                        resolve({ score: Math.round(0.4*sharpnessScore + 0.3*brightnessScore + 0.3*contrastScore) });
+                    };
+                    img.src = imageData;
+                });
+            },
+            
+            async handleQualityResult(quality, imageData) {
+                this.photoAttempts++;
+                const T = this.QUALITY_THRESHOLDS;
+                if (quality.score >= T.AUTO_ANALYZE) { this.capturedImages.push(imageData); this.renderCapturedImages(); this.autoAnalyze(); }
+                else if (quality.score >= T.GOOD) { this.capturedImages.push(imageData); this.renderCapturedImages(); this.showToast('Great photo! 📸', 'success'); document.getElementById('analyze-btn').disabled = false; }
+                else if (quality.score >= T.ACCEPTABLE) { this.capturedImages.push(imageData); this.renderCapturedImages(); document.getElementById('analyze-btn').disabled = false; }
+                else if (quality.score >= T.MARGINAL && this.photoAttempts > 1) { if (confirm('Photo quality is marginal. Continue anyway?')) { this.capturedImages.push(imageData); this.renderCapturedImages(); document.getElementById('analyze-btn').disabled = false; this.showToast('Photo added with warning', 'warning'); } }
+                else { this.showToast('Photo too blurry. Please retake.', 'error'); }
+                this.updatePhotoCountBadge();
+            },
+            
+            autoAnalyze() {
+                const badge = document.getElementById('auto-analyze-badge');
+                badge?.classList.add('visible');
+                setTimeout(() => { badge?.classList.remove('visible'); this.analyzeProduct(); }, 800);
+            },
+            
+            updatePhotoCountBadge() {
+                const badge = document.getElementById('photo-count-badge');
+                if (badge) { badge.textContent = this.capturedImages.length; badge.style.display = this.capturedImages.length > 0 ? 'flex' : 'none'; }
+            },
+            
+            openGallery() {
+                const input = document.createElement('input');
+                input.type = 'file'; input.accept = 'image/*';
+                input.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                            if (this.capturedImages.length < this.maxPhotos) {
+                                this.capturedImages.push(ev.target.result);
+                                this.renderCapturedImages();
+                                document.getElementById('analyze-btn').disabled = false;
+                                this.updatePhotoCountBadge();
+                                this.showToast('Photo added', 'success');
+                            } else { this.showToast('Maximum 3 photos', 'warning'); }
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                };
+                input.click();
+            },
+            
+            startVoiceInput(inputId) {
+                if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) { this.showToast('Voice not supported', 'warning'); return; }
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                const recognition = new SpeechRecognition();
+                recognition.lang = 'en-IN'; recognition.continuous = false;
+                const input = document.getElementById(inputId);
+                const micBtn = input?.parentElement?.querySelector('.mic-btn');
+                recognition.onstart = () => micBtn?.classList.add('listening');
+                recognition.onresult = (e) => { if (input) input.value = input.value ? `${input.value}, ${e.results[0][0].transcript}` : e.results[0][0].transcript; };
+                recognition.onerror = () => this.showToast('Voice failed', 'error');
+                recognition.onend = () => micBtn?.classList.remove('listening');
+                recognition.start();
+            },
+            
+            initIngredientCarousel() {
+                this.currentIngredientIndex = 0;
+                const carousel = document.getElementById('ingredient-carousel');
+                if (!carousel) return;
+                carousel.addEventListener('touchstart', (e) => { this.touchStartX = e.touches[0].clientX; }, { passive: true });
+                carousel.addEventListener('touchend', (e) => { const diff = this.touchStartX - e.changedTouches[0].clientX; if (Math.abs(diff) > 50) { if (diff > 0) this.nextIngredient(); else this.prevIngredient(); } }, { passive: true });
+            },
+            
+            nextIngredient() { const cards = document.querySelectorAll('.ingredient-card'); if (this.currentIngredientIndex < cards.length - 1) this.goToIngredient(this.currentIngredientIndex + 1); },
+            prevIngredient() { if (this.currentIngredientIndex > 0) this.goToIngredient(this.currentIngredientIndex - 1); },
+            goToIngredient(index) {
+                const cards = document.querySelectorAll('.ingredient-card');
+                if (index < 0 || index >= cards.length) return;
+                this.currentIngredientIndex = index;
+                const wrapper = document.getElementById('ingredient-cards');
+                if (wrapper) wrapper.style.transform = `translateX(-${index * 100}%)`;
+                document.querySelectorAll('.carousel-dot').forEach((dot, i) => dot.classList.toggle('active', i === index));
+                const prev = document.getElementById('carousel-prev');
+                const next = document.getElementById('carousel-next');
+                if (prev) prev.disabled = index === 0;
+                if (next) next.disabled = index === cards.length - 1;
+            },
+            
+            toggleExplainer() { document.getElementById('score-explainer')?.classList.toggle('visible'); },
+            
             saveSettings() {
                 // BUG #11: Simplified profile - removed email and dietary preferences
                 this.userSettings = {
@@ -1641,6 +1994,25 @@
                 
                 this.currentView = viewName;
                 
+                // Scanner view specific logic (v1.2.0)
+                if (viewName === 'scanner') {
+                    document.getElementById('mode-badge')?.classList.add('visible');
+                    document.getElementById('scanner-bottom-bar')?.classList.add('visible');
+                    this.updateModeUI();
+                    this.photoAttempts = 0;
+                    this.capturedImages = []; // Reset captured images
+                    this.renderCapturedImages();
+                    this.updatePhotoCountBadge();
+                    // v1.2.0: Auto-start camera (removed Start Camera button)
+                    setTimeout(() => this.startCamera(), 300);
+                } else {
+                    document.getElementById('mode-badge')?.classList.remove('visible');
+                    document.getElementById('mode-menu')?.classList.remove('visible');
+                    document.getElementById('scanner-bottom-bar')?.classList.remove('visible');
+                    // Stop camera when leaving scanner
+                    this.stopCamera();
+                }
+                
                 // Load settings when viewing settings page
                 if (viewName === 'settings') {
                     this.loadSettings();
@@ -1661,54 +2033,90 @@
                 }
             },
 
-            // Camera Functions - BUG #2: Improved error handling
-            async toggleCamera() {
+            // v1.2.0: Camera Functions - Auto-start, no toggle button
+            async startCamera() {
+                if (this.cameraActive) return; // Already running
+                
                 const video = document.getElementById('camera-video');
                 const placeholder = document.getElementById('camera-placeholder');
                 const overlay = document.getElementById('camera-overlay');
-                const btn = document.getElementById('toggle-camera-btn');
 
-                if (!this.cameraActive) {
-                    try {
-                        this.stream = await navigator.mediaDevices.getUserMedia({ 
-                            video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } } 
-                        });
-                        video.srcObject = this.stream;
-                        video.style.display = 'block';
-                        placeholder.style.display = 'none';
-                        overlay.style.display = 'flex';
-                        btn.textContent = 'Stop Camera';
-                        btn.classList.remove('btn-secondary');
-                        btn.classList.add('btn-primary');
-                        this.cameraActive = true;
-                        this.hideError();  // Clear any previous errors
-                        
-                        // Start barcode detection if in barcode mode
-                        if (this.scanMode === 'barcode') {
-                            this.startBarcodeDetection();
-                        }
-                    } catch (err) {
-                        // BUG #2: Show actionable error instead of generic alert
-                        if (err.name === 'NotAllowedError') {
-                            this.showError('CAMERA_DENIED');
-                        } else if (err.name === 'NotFoundError') {
-                            this.showError('CAMERA_UNAVAILABLE');
-                        } else {
-                            this.showError('CAMERA_UNAVAILABLE');
-                        }
-                        console.error('Camera error:', err);
+                try {
+                    this.stream = await navigator.mediaDevices.getUserMedia({ 
+                        video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } } 
+                    });
+                    video.srcObject = this.stream;
+                    video.style.display = 'block';
+                    placeholder.style.display = 'none';
+                    overlay.style.display = 'flex';
+                    this.cameraActive = true;
+                    this.hideError();  // Clear any previous errors
+                    
+                    // Start barcode detection if in barcode mode
+                    if (this.scanMode === 'barcode') {
+                        this.startBarcodeDetection();
                     }
-                } else {
+                    
+                    // Update scan guide based on mode
+                    const guideText = document.getElementById('scan-guide-text');
+                    if (guideText) {
+                        guideText.textContent = this.scanMode === 'barcode' 
+                            ? '📊 Point at barcode for instant lookup'
+                            : '📋 Point at ingredient list - any language';
+                    }
+                } catch (err) {
+                    // BUG #2: Show actionable error instead of generic alert
+                    this.logError('CAMERA_ERROR', { name: err.name, message: err.message });
+                    if (err.name === 'NotAllowedError') {
+                        this.showError('CAMERA_DENIED');
+                    } else if (err.name === 'NotFoundError') {
+                        this.showError('CAMERA_UNAVAILABLE');
+                    } else {
+                        this.showError('CAMERA_UNAVAILABLE');
+                    }
+                    console.error('Camera error:', err);
+                }
+            },
+            
+            // Legacy alias for compatibility
+            toggleCamera() {
+                if (this.cameraActive) {
                     this.stopCamera();
+                } else {
+                    this.startCamera();
                 }
             },
 
             // BUG #2: Error display function
+            // v1.2.0: Enhanced error display with auto-switch support
             showError(errorType) {
                 const error = ERROR_CODES[errorType];
                 if (!error) {
                     console.error('Unknown error type:', errorType);
                     return;
+                }
+                
+                // Log error
+                this.logError(error.code, { type: errorType });
+                
+                // Determine fallback button based on error type
+                let fallbackButton = '';
+                if (error.fallback === 'switchToIngredients') {
+                    // v1.2.0: Auto-switch to ingredients mode
+                    fallbackButton = `
+                        <button class="btn btn-secondary" onclick="app.switchToIngredientsMode()" style="margin-bottom: 12px; width: 100%;">
+                            ${error.fallbackText || '📋 Scan Ingredients Instead'}
+                        </button>
+                    `;
+                } else if (error.fallback) {
+                    fallbackButton = `
+                        <p style="font-size: 14px; color: #64748B; margin-bottom: 16px;">
+                            ${error.fallback}
+                        </p>
+                        <button class="btn btn-secondary" onclick="app.useGalleryFallback()" style="margin-bottom: 12px; width: 100%;">
+                            📁 Upload from Gallery
+                        </button>
+                    `;
                 }
                 
                 const html = `
@@ -1728,14 +2136,7 @@
                             </ul>
                         </div>
                         
-                        ${error.fallback ? `
-                            <p style="font-size: 14px; color: #64748B; margin-bottom: 16px;">
-                                ${error.fallback}
-                            </p>
-                            <button class="btn btn-secondary" onclick="app.useGalleryFallback()" style="margin-bottom: 12px; width: 100%;">
-                                📁 Upload from Gallery
-                            </button>
-                        ` : ''}
+                        ${fallbackButton}
                         
                         <button class="btn btn-primary" onclick="app.retryCamera()" style="width: 100%;">
                             🔄 Try Again
@@ -1750,6 +2151,18 @@
                 const resultContainer = document.getElementById('scanner-result');
                 resultContainer.innerHTML = html;
                 resultContainer.style.display = 'block';
+            },
+
+            // v1.2.0: Switch to ingredients mode (called from barcode not found error)
+            switchToIngredientsMode() {
+                this.hideError();
+                this.selectMode('ingredients');
+                this.showToast('Switched to Ingredients mode. Point at ingredient list.', 'success');
+                // Camera is already running, just update the guide
+                const guideText = document.getElementById('scan-guide-text');
+                if (guideText) {
+                    guideText.textContent = '📋 Point at ingredient list - any language';
+                }
             },
 
             hideError() {
@@ -1788,19 +2201,19 @@
                 const video = document.getElementById('camera-video');
                 const placeholder = document.getElementById('camera-placeholder');
                 const overlay = document.getElementById('camera-overlay');
-                const btn = document.getElementById('toggle-camera-btn');
                 
-                this.stream?.getTracks().forEach(track => track.stop());
-                video.style.display = 'none';
-                placeholder.style.display = 'flex';
-                overlay.style.display = 'none';
-                btn.textContent = 'Start Camera';
-                btn.classList.remove('btn-primary');
-                btn.classList.add('btn-secondary');
+                if (this.stream) {
+                    this.stream.getTracks().forEach(track => track.stop());
+                    this.stream = null;
+                }
+                
+                if (video) video.style.display = 'none';
+                if (placeholder) placeholder.style.display = 'flex';
+                if (overlay) overlay.style.display = 'none';
                 this.cameraActive = false;
                 
                 if (window.Quagga) {
-                    Quagga.stop();
+                    try { Quagga.stop(); } catch(e) {}
                 }
             },
 
@@ -1999,79 +2412,132 @@
                 return foundAllergens;
             },
 
+            // v1.2.0: Improved Gemini prompt with compound ingredient handling
             async analyzeWithGemini(extractedText, mode) {
                 const GEMINI_API_KEY = 'AIzaSyBRU_8O1QXJaYnx1liyf7j3lhQwpj1fuEU';
                 
                 const basePrompt = mode === 'ingredients' 
-                    ? `You are analyzing ONLY an ingredient list (not a full product). The user scanned just the ingredients section.
+                    ? `You are analyzing a food product ingredient list for consumer health education.
 
-Extract and analyze the ingredients. Detect the language automatically (English, Hindi, Tamil, Telugu, etc).
-
-Text from ingredient list:
+EXTRACTED TEXT FROM IMAGE:
 ${extractedText}
 
-Respond ONLY with valid JSON in this exact format:
+═══════════════════════════════════════════════════════════════
+CRITICAL EXTRACTION RULES - READ CAREFULLY
+═══════════════════════════════════════════════════════════════
+
+1. ONLY extract from the "Ingredients:" section
+2. Ingredients are separated by: COMMAS (,) SEMICOLONS (;) BULLETS (•) or NEWLINES
+3. KEEP COMPOUND INGREDIENTS TOGETHER AS ONE UNIT:
+   ✓ "Sodium Benzoate" → "Sodium Benzoate" (NOT "Sodium" + "Benzoate")
+   ✓ "Palm Oil" → "Palm Oil" (NOT "Palm" + "Oil")
+   ✓ "Citric Acid" → "Citric Acid"
+   ✓ "Monosodium Glutamate" → "Monosodium Glutamate"
+   ✓ "Modified Corn Starch" → "Modified Corn Starch"
+
+4. STOP extraction when you see ANY of these:
+   - "Contains:", "Allergens:", "May Contain:"
+   - "Nutrition Facts", "Nutritional Information"
+   - "Net Weight", "Net Wt", "Net Contents"
+   - "Best Before", "Expiry", "Use By", "Mfg Date"
+   - "Storage:", "Directions:", "Instructions:"
+   - "Manufactured by:", "Packed by:", "Marketed by:"
+
+5. KNOWN COMPOUND INGREDIENTS (keep together):
+   - Preservatives: Sodium Benzoate, Potassium Sorbate, Calcium Propionate
+   - Acids: Citric Acid, Ascorbic Acid, Tartaric Acid, Malic Acid, Lactic Acid
+   - Oils: Palm Oil, Sunflower Oil, Coconut Oil, Vegetable Oil, Soybean Oil, Rice Bran Oil
+   - Starches: Modified Starch, Corn Starch, Tapioca Starch, Modified Corn Starch
+   - Flavors: Natural Flavors, Artificial Flavors, Nature Identical Flavoring
+   - Additives: Raising Agent, Emulsifying Agent, Stabilizer, Thickener
+   - E-numbers: E621, E320, E330 (keep code with name if both present)
+   - INS codes: INS 621, INS 320 (keep code with name if both present)
+
+6. COMPLETELY IGNORE:
+   - Numbers alone (200g, 500ml, %)
+   - Dates in any format
+   - Brand names, company names
+   - Nutrition values (calories, protein, etc.)
+   - Serving size information
+
+Respond ONLY with valid JSON:
 {
-  "detectedLanguage": "English/Hindi/Tamil/etc",
-  "productName": "Unknown (ingredients only scan)",
-  "category": "food/personal-care/household",
+  "detectedLanguage": "English/Hindi/Tamil/Telugu/Other",
+  "productName": "Unknown (Ingredient Scan)",
+  "category": "food",
   "healthScore": 0-100,
   "scoreCategory": "excellent/good/fair/poor/bad",
-  "scoreReason": "Brief explanation based on ingredient analysis",
-  "allergyWarnings": ["any allergens found"],
+  "scoreReason": "Brief 1-2 sentence explanation",
+  "confidence": "high/medium/low",
+  "allergyWarnings": ["list of common allergens detected"],
   "ingredients": [
     {
-      "name": "ingredient name",
-      "purpose": "what it does",
+      "name": "Ingredient Name (keep compound names together)",
+      "purpose": "What this ingredient does",
       "healthImpact": "positive/neutral/negative",
-      "details": "detailed explanation in simple language",
-      "source": "where it comes from",
-      "readabilityIssue": false or "Could not read clearly - please verify"
+      "safetyLevel": "generally-safe/use-sparingly/limit-intake/avoid-if-sensitive",
+      "details": "2-3 sentence explanation in simple language",
+      "source": "Natural/Synthetic/Processed"
     }
   ],
-  "overallVerdict": "🟢 Good to buy / ⚠️ Consider alternatives / 🔴 Skip this",
   "trustBadges": [
-    {"type": "verified/caution/warning", "text": "badge text", "standard": "WHO/FSSAI/FDA"}
-  ]
+    {"type": "verified/caution/warning", "text": "Badge text", "standard": "WHO/FSSAI/FDA/EFSA"}
+  ],
+  "overallVerdict": "Brief recommendation"
 }
 
-Mark any ingredients that couldn't be read clearly with readabilityIssue.`
-                    : `Analyze this food/personal care product label for Indian consumers. Provide a comprehensive analysis in JSON format.
+CONFIDENCE RULES:
+- "high": Clear image, all ingredients readable, standard format
+- "medium": Some text unclear, most ingredients detected
+- "low": Poor quality, many ingredients may be missed
+
+HEALTH SCORE RULES:
+- 80-100 (excellent): Minimal processing, no concerning additives
+- 60-79 (good): Some processing, minor additives
+- 40-59 (fair): Moderate processing, some concerning ingredients
+- 20-39 (poor): Highly processed, multiple concerning additives
+- 0-19 (bad): Many harmful additives, very low nutritional value
+
+Be accurate and educational. Avoid alarmist language.`
+                    : `Analyze this food product label for Indian consumers.
 
 Text from product label:
 ${extractedText}
 
-Respond ONLY with valid JSON in this exact format:
+CRITICAL: Keep compound ingredient names together (e.g., "Sodium Benzoate" not "Sodium" + "Benzoate").
+
+Respond ONLY with valid JSON:
 {
   "productName": "Product name",
   "brand": "Brand name",
-  "category": "food/personal-care/household",
+  "category": "food",
   "healthScore": 0-100,
   "scoreCategory": "excellent/good/fair/poor/bad",
   "scoreReason": "Brief explanation",
-  "allergyWarnings": ["any allergens found"],
+  "confidence": "high/medium/low",
+  "allergyWarnings": ["allergens found"],
   "macros": {
-    "calories": "value per 100g",
-    "protein": "value",
-    "carbs": "value",
-    "fat": "value",
-    "fiber": "value",
-    "sugar": "value"
+    "calories": "value per 100g or null",
+    "protein": "value or null",
+    "carbs": "value or null",
+    "fat": "value or null",
+    "fiber": "value or null",
+    "sugar": "value or null"
   },
   "ingredients": [
     {
       "name": "ingredient name",
       "purpose": "what it does",
       "healthImpact": "positive/neutral/negative",
-      "details": "detailed explanation in simple language",
-      "source": "where it comes from"
+      "safetyLevel": "generally-safe/use-sparingly/limit-intake/avoid-if-sensitive",
+      "details": "explanation in simple language",
+      "source": "Natural/Synthetic/Processed"
     }
   ],
   "certifications": ["FSSAI", "organic", etc],
   "trustBadges": [
     {"type": "verified/caution/warning", "text": "badge text", "standard": "WHO/FSSAI/FDA"}
-  ],
-  "alternatives": []
+  ]
 }`;
 
                 try {
@@ -2100,14 +2566,172 @@ Respond ONLY with valid JSON in this exact format:
                     const jsonMatch = text.match(/\{[\s\S]*\}/);
                     
                     if (jsonMatch) {
-                        return JSON.parse(jsonMatch[0]);
+                        const rawAnalysis = JSON.parse(jsonMatch[0]);
+                        // v1.2.0: Post-processing validation
+                        return this.validateAndCleanAnalysis(rawAnalysis);
                     }
                     
                     throw new Error('Could not parse response');
                 } catch (error) {
                     console.error('Gemini API error:', error);
-                    alert('⚠️ Error: API key missing. Cannot enable AI analysis.');
+                    this.logError('ERR_API', { message: error.message });
+                    this.showToast('Analysis failed. Please try again.', 'error');
                     return this.getDemoAnalysis(mode);
+                }
+            },
+
+            // v1.2.0: Post-processing validation for AI results
+            validateAndCleanAnalysis(analysis) {
+                // Clean ingredients
+                if (analysis.ingredients && Array.isArray(analysis.ingredients)) {
+                    analysis.ingredients = this.cleanIngredients(analysis.ingredients);
+                }
+                
+                // Validate health score
+                if (typeof analysis.healthScore === 'number') {
+                    analysis.healthScore = Math.max(0, Math.min(100, Math.round(analysis.healthScore)));
+                } else {
+                    analysis.healthScore = 50; // Default if missing
+                }
+                
+                // Ensure score category matches score
+                analysis.scoreCategory = this.getScoreCategory(analysis.healthScore);
+                
+                // Validate confidence
+                if (!['high', 'medium', 'low'].includes(analysis.confidence)) {
+                    analysis.confidence = 'medium';
+                }
+                
+                // Validate macros (all-or-nothing)
+                if (analysis.macros) {
+                    if (!this.hasCompleteNutrition(analysis.macros)) {
+                        analysis.macros = null; // Remove incomplete nutrition
+                    }
+                }
+                
+                // Ensure arrays exist
+                analysis.allergyWarnings = analysis.allergyWarnings || [];
+                analysis.trustBadges = analysis.trustBadges || [];
+                
+                return analysis;
+            },
+
+            // v1.2.0: Clean and validate ingredients list
+            cleanIngredients(ingredients) {
+                // Patterns to exclude (non-ingredients)
+                const excludePatterns = [
+                    /^net\s*(weight|wt|contents?)/i,
+                    /^best\s*before/i,
+                    /^(mfg|exp|use\s*by)\s*date/i,
+                    /^batch/i,
+                    /^lot/i,
+                    /^\d+\s*(g|ml|kg|l|kcal|cal)$/i,
+                    /^\d+%$/,
+                    /^contains?:?$/i,
+                    /^allergen/i,
+                    /^ingredients?:?$/i,
+                    /^nutrition/i,
+                    /^storage/i,
+                    /^directions?/i,
+                    /^manufactured/i,
+                    /^packed\s*by/i,
+                    /^marketed\s*by/i
+                ];
+                
+                return ingredients
+                    .filter(ing => {
+                        if (!ing || !ing.name) return false;
+                        const name = ing.name.trim();
+                        if (name.length < 2) return false;
+                        // Check against exclude patterns
+                        return !excludePatterns.some(pattern => pattern.test(name));
+                    })
+                    .map(ing => ({
+                        name: this.mergeCompoundIngredient(ing.name.trim()),
+                        purpose: ing.purpose || 'Ingredient',
+                        healthImpact: ing.healthImpact || 'neutral',
+                        safetyLevel: ing.safetyLevel || 'generally-safe',
+                        details: ing.details || 'Part of product formulation',
+                        source: ing.source || 'Unknown'
+                    }));
+            },
+
+            // v1.2.0: Merge compound ingredients that may have been split
+            mergeCompoundIngredient(name) {
+                // Known compound prefixes and their common pairs
+                const compounds = {
+                    'sodium': ['benzoate', 'chloride', 'bicarbonate', 'citrate', 'lactate', 'phosphate'],
+                    'potassium': ['sorbate', 'chloride', 'citrate', 'benzoate'],
+                    'calcium': ['carbonate', 'chloride', 'phosphate', 'propionate', 'sulfate'],
+                    'citric': ['acid'],
+                    'ascorbic': ['acid'],
+                    'lactic': ['acid'],
+                    'malic': ['acid'],
+                    'tartaric': ['acid'],
+                    'palm': ['oil'],
+                    'sunflower': ['oil'],
+                    'coconut': ['oil'],
+                    'vegetable': ['oil'],
+                    'soybean': ['oil'],
+                    'rice': ['bran oil', 'flour'],
+                    'corn': ['starch', 'syrup', 'flour'],
+                    'modified': ['starch', 'corn starch', 'tapioca starch'],
+                    'wheat': ['flour', 'gluten'],
+                    'natural': ['flavors', 'flavours', 'color', 'colours'],
+                    'artificial': ['flavors', 'flavours', 'color', 'colours']
+                };
+                
+                // Already looks compound, return as-is
+                if (name.includes(' ')) return name;
+                
+                // Check if this is a prefix that needs a suffix
+                const lower = name.toLowerCase();
+                if (compounds[lower]) {
+                    // This is incomplete - but we can't fix without context
+                    // Just return as-is
+                }
+                
+                return name;
+            },
+
+            // v1.2.0: Check if nutrition data is complete (all-or-nothing)
+            hasCompleteNutrition(macros) {
+                if (!macros) return false;
+                
+                // Require all 4 core macros to display nutrition section
+                const required = ['calories', 'protein', 'carbs', 'fat'];
+                return required.every(key => {
+                    const value = macros[key];
+                    if (!value) return false;
+                    if (value === 'null' || value === 'N/A' || value === '-') return false;
+                    // Must have a number
+                    return /\d/.test(value);
+                });
+            },
+
+            // v1.2.0: Get score category from numeric score
+            getScoreCategory(score) {
+                if (score >= 80) return 'excellent';
+                if (score >= 60) return 'good';
+                if (score >= 40) return 'fair';
+                if (score >= 20) return 'poor';
+                return 'bad';
+            },
+
+            // v1.2.0: Error logging to localStorage
+            logError(code, details = {}) {
+                try {
+                    const errors = JSON.parse(localStorage.getItem('eitaki_error_log') || '[]');
+                    errors.push({
+                        code,
+                        details,
+                        timestamp: Date.now(),
+                        url: window.location.href
+                    });
+                    // Keep only last 50 errors
+                    localStorage.setItem('eitaki_error_log', JSON.stringify(errors.slice(-50)));
+                } catch (e) {
+                    console.error('Failed to log error:', e);
                 }
             },
 
