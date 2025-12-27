@@ -397,32 +397,7 @@
             color: var(--light-slate);
         }
 
-        .scan-mode-toggle {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
-            background: var(--ice-blue);
-            padding: 8px;
-            border-radius: 12px;
-        }
-
-        .mode-btn {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            background: transparent;
-            color: var(--slate);
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .mode-btn.active {
-            background: var(--deep-teal);
-            color: white;
-            box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
-        }
+        /* v1.2.1: Old .scan-mode-toggle and .mode-btn CSS removed - using floating badge */
 
         .camera-preview {
             position: relative;
@@ -1250,6 +1225,123 @@
         .pillar-weight { width: 40px; height: 40px; border-radius: 8px; background: #F0FDF4; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #16A34A; flex-shrink: 0; }
         .pillar-name { font-size: 14px; font-weight: 600; color: #1E293B; }
         .pillar-desc { font-size: 12px; color: #64748B; }
+        
+        /* v1.2.2: Crop Modal */
+        .crop-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 1000;
+            flex-direction: column;
+        }
+        .crop-modal.active { display: flex; }
+        .crop-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: rgba(0,0,0,0.5);
+        }
+        .crop-header h3 { color: white; margin: 0; font-size: 18px; }
+        .crop-header button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 16px;
+            padding: 8px 16px;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+        .crop-header button:hover { background: rgba(255,255,255,0.1); }
+        .crop-header .crop-done { background: #16A34A; font-weight: 600; }
+        .crop-header .crop-done:hover { background: #15803D; }
+        .crop-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+        .crop-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            touch-action: none;
+        }
+        .crop-overlay {
+            position: absolute;
+            border: 2px dashed #16A34A;
+            background: rgba(22, 163, 74, 0.1);
+            pointer-events: none;
+        }
+        .crop-instructions {
+            padding: 12px;
+            text-align: center;
+            color: #94A3B8;
+            font-size: 14px;
+            background: rgba(0,0,0,0.5);
+        }
+        
+        /* v1.2.2: Mini Recent Scans on Scanner Page */
+        .scanner-mini-history {
+            position: fixed;
+            bottom: 100px;
+            left: 16px;
+            right: 16px;
+            z-index: 140;
+            display: none;
+        }
+        .scanner-mini-history.visible { display: block; }
+        .mini-history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 12px 12px 0 0;
+        }
+        .mini-history-header span { color: white; font-size: 12px; font-weight: 600; }
+        .mini-history-toggle {
+            background: none;
+            border: none;
+            color: #16A34A;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .mini-history-list {
+            display: flex;
+            gap: 8px;
+            padding: 8px;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 0 0 12px 12px;
+            overflow-x: auto;
+        }
+        .mini-history-item {
+            flex-shrink: 0;
+            width: 80px;
+            padding: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .mini-history-item:hover { background: rgba(255,255,255,0.2); }
+        .mini-history-score {
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+        }
+        .mini-history-name {
+            font-size: 10px;
+            color: #94A3B8;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
     
     </style>
 </head>
@@ -1271,45 +1363,38 @@
             </div>
         </header>
 
-        <!-- Onboarding -->
+        <!-- Onboarding - v1.2.1: Single screen -->
         <div id="view-onboarding" class="view active">
             <div class="onboarding-container">
-                <!-- Screen 1: Welcome -->
                 <div class="onboarding-screen active" id="onboarding-1">
                     <div class="onboarding-icon">🌱</div>
                     <h1 class="onboarding-title">Welcome to Eitaki</h1>
                     <p class="onboarding-text">
-                        Decode ingredients in products you use daily.<br>
-                        From Delhi to Dubai, Mumbai to Manhattan.
+                        Decode ingredients in everyday products.<br>
+                        <strong>No signup required.</strong>
                     </p>
-                    <button class="btn btn-primary" onclick="app.nextOnboarding()">Next →</button>
-                </div>
-
-                <!-- Screen 2: How it Works -->
-                <div class="onboarding-screen" id="onboarding-2">
-                    <h2 class="onboarding-title">How it works</h2>
-                    <ul class="onboarding-list">
-                        <li><span style="font-size: 24px;">📸</span> <span>Scan barcode or ingredient list</span></li>
-                        <li><span style="font-size: 24px;">🔬</span> <span>Get instant AI-powered analysis</span></li>
-                        <li><span style="font-size: 24px;">💚</span> <span>Make informed choices for your family</span></li>
-                    </ul>
-                    <div class="onboarding-text">
-                        <strong>🔒 Your data stays on your phone</strong><br>
-                        <strong>💚 No ads, ever</strong>
+                    
+                    <div style="text-align: left; margin: 24px 0; padding: 16px; background: rgba(22, 163, 74, 0.1); border-radius: 12px;">
+                        <div style="margin-bottom: 12px; display: flex; align-items: center; gap: 12px;">
+                            <span style="font-size: 24px;">📸</span>
+                            <span>Scan barcode or ingredient list</span>
+                        </div>
+                        <div style="margin-bottom: 12px; display: flex; align-items: center; gap: 12px;">
+                            <span style="font-size: 24px;">🔬</span>
+                            <span>Get AI-powered analysis</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span style="font-size: 24px;">💚</span>
+                            <span>Make informed choices</span>
+                        </div>
                     </div>
-                    <button class="btn btn-primary" onclick="app.nextOnboarding()">Next →</button>
-                </div>
-
-                <!-- Screen 3: Get Started - BUG #1 FIX: No signup required -->
-                <div class="onboarding-screen" id="onboarding-3">
-                    <div class="onboarding-icon">🚀</div>
-                    <h2 class="onboarding-title">You're all set!</h2>
-                    <p class="onboarding-text">
-                        Start scanning immediately—no signup required!
-                    </p>
-                    <button class="btn btn-primary" onclick="app.completeOnboarding()">Start Scanning</button>
-                    <p class="onboarding-text" style="margin-top: 24px; font-size: 13px; color: #64748B;">
-                        💡 <strong>Want to contribute?</strong> Create an account later to add products and help the community.
+                    
+                    <button class="btn btn-primary" onclick="app.completeOnboarding()" style="width: 100%; font-size: 18px; padding: 16px;">
+                        Start Scanning →
+                    </button>
+                    
+                    <p style="margin-top: 16px; font-size: 12px; color: #64748B; text-align: center;">
+                        🔒 Your data stays on your device • 💚 No ads
                     </p>
                 </div>
             </div>
@@ -1331,9 +1416,7 @@
                 <button class="scan-btn-large" onclick="app.showView('scanner')" aria-label="Start scanning products">
                     📸 SCAN PRODUCT
                 </button>
-                <div class="secondary-action">
-                    <a href="#" class="text-link" onclick="app.showSearchModal(); return false;">Or search by name</a>
-                </div>
+                <!-- v1.2.1: Search link removed - Phase 1.5 feature -->
                 
                 <div class="recent-scans" id="recent-scans-container" style="display: none;">
                     <div class="recent-title">Recent Scans</div>
@@ -1369,8 +1452,13 @@
 
         <!-- Scanner View -->
         <div id="view-scanner" class="view">
+            <!-- v1.2.1: X close button -->
+            <button onclick="app.showView('home')" style="position: fixed; top: 16px; right: 16px; z-index: 200; width: 40px; height: 40px; border-radius: 50%; border: none; background: rgba(0,0,0,0.5); color: white; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                ✕
+            </button>
+            
             <!-- Floating Mode Badge (v1.2.0) -->
-            <div class="mode-badge" id="mode-badge" onclick="app.toggleModeMenu()">
+            <div class="mode-badge visible" id="mode-badge" onclick="app.toggleModeMenu()">
                 <span id="mode-badge-icon">📋</span>
                 <span id="mode-badge-text">Ingredients</span>
                 <span class="mode-badge-arrow">▼</span>
@@ -1383,17 +1471,10 @@
             <div class="scanner-container">
                 <div class="scanner-header">
                     <h2 class="scanner-title">Scan Product</h2>
-                    <p class="scanner-subtitle">Choose your scanning mode</p>
+                    <p class="scanner-subtitle" id="scanner-subtitle">Point at ingredient list</p>
                 </div>
 
-                <div class="scan-mode-toggle">
-                    <button class="mode-btn active" onclick="app.setScanMode('barcode')" id="mode-barcode">
-                        📊 Barcode
-                    </button>
-                    <button class="mode-btn" onclick="app.setScanMode('ingredients')" id="mode-ingredients">
-                        📋 Ingredients
-                    </button>
-                </div>
+                <!-- v1.2.1: Old tabs removed - using floating badge only -->
 
                 <div class="camera-preview">
                     <video id="camera-video" class="camera-video" autoplay playsinline style="display:none;" aria-label="Camera preview"></video>
@@ -1410,7 +1491,7 @@
                     <div class="auto-analyze-badge" id="auto-analyze-badge">✨ Auto-analyzing...</div>
                     <div class="camera-overlay" style="display:none;" id="camera-overlay">
                         <div class="scan-guide" role="status" aria-live="polite" id="scan-guide-text">
-                            📊 Point at barcode for instant lookup
+                            📋 Point at ingredient list
                         </div>
                         <div class="capture-area" aria-hidden="true"></div>
                     </div>
@@ -1431,9 +1512,36 @@
             <div class="scanner-bottom-bar" id="scanner-bottom-bar">
                 <button class="bar-btn" onclick="app.openGallery()" aria-label="Gallery">🖼️<span class="badge" id="photo-count-badge" style="display:none;">0</span></button>
                 <button class="bar-btn capture" id="capture-btn-main" onclick="app.capturePhoto()" aria-label="Capture">📷</button>
-                <button class="bar-btn" id="analyze-btn-bar" onclick="app.analyzeProduct()" aria-label="Analyze">✓</button>
+                <button class="bar-btn" id="analyze-btn-bar" onclick="app.analyzeProduct()" aria-label="Analyze" disabled>✓</button>
+            </div>
+            
+            <!-- v1.2.2: Mini Recent Scans -->
+            <div class="scanner-mini-history" id="scanner-mini-history">
+                <div class="mini-history-header">
+                    <span>📜 Recent Scans</span>
+                    <button class="mini-history-toggle" onclick="app.toggleMiniHistory()">Hide</button>
+                </div>
+                <div class="mini-history-list" id="mini-history-list">
+                    <!-- Populated dynamically -->
+                </div>
             </div>
 
+        </div>
+        
+        <!-- v1.2.2: Crop Modal -->
+        <div class="crop-modal" id="crop-modal">
+            <div class="crop-header">
+                <button onclick="app.cancelCrop()">Cancel</button>
+                <h3>Crop Image</h3>
+                <button class="crop-done" onclick="app.applyCrop()">Done</button>
+            </div>
+            <div class="crop-container" id="crop-container">
+                <img id="crop-image" class="crop-image" src="" alt="Image to crop">
+                <div class="crop-overlay" id="crop-overlay"></div>
+            </div>
+            <div class="crop-instructions">
+                Pinch to zoom • Drag to position • Focus on ingredient list
+            </div>
         </div>
 
         <!-- Analysis View -->
@@ -1661,21 +1769,7 @@
             </div>
         </div>
 
-        <!-- Email Verification Modal -->
-        <div class="modal" id="email-modal" role="dialog" aria-labelledby="email-modal-title">
-            <div class="modal-content">
-                <h3 class="modal-title" id="email-modal-title">Verify Your Email</h3>
-                <p class="modal-text">
-                    To contribute products to our community database, please verify your email address.
-                    This helps maintain data quality and prevent spam.
-                </p>
-                <input type="email" class="form-input" id="email-input" placeholder="your.email@example.com" aria-label="Email address">
-                <div class="modal-buttons">
-                    <button class="btn btn-secondary" onclick="app.closeModal()" style="flex: 1;">Later</button>
-                    <button class="btn btn-primary" onclick="app.sendVerificationCode()" style="flex: 1;">Send Code</button>
-                </div>
-            </div>
-        </div>
+        <!-- v1.2.1: Email Verification Modal removed - Phase 1.5 feature -->
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
@@ -1736,15 +1830,21 @@
             currentView: 'onboarding',
             onboardingStep: 1,
             cameraActive: false,
+            cameraPermissionDenied: false, // C2: Cache permission denial
             capturedImages: [],
             stream: null,
             scanCount: 0,
-            emailVerified: false,
             recentScans: [],
             scanMode: 'ingredients',  // v1.2.0: Default to ingredients mode (our differentiator)
             userSettings: {},
             photoAttempt: 1,  // BUG #3: Track photo attempts for quality feedback
             lastAnalysisConfidence: 100,  // BUG #5: Track confidence for display
+            // v1.2.2: Crop state
+            cropImageData: null,
+            cropScale: 1,
+            cropX: 0,
+            cropY: 0,
+            miniHistoryVisible: true,
 
             init() {
                 // Check if onboarding already completed
@@ -1758,6 +1858,7 @@
                 this.loadSettings();
                 this.setupEventListeners();
                 this.updateScanHistoryDisplay();  // BUG #11: Show scan history
+                this.miniHistoryVisible = localStorage.getItem('miniHistoryVisible') !== 'false';
             },
 
             setupEventListeners() {
@@ -1765,14 +1866,19 @@
             },
 
             loadSettings() {
-                const saved = localStorage.getItem('user_settings');
-                if (saved) {
-                    this.userSettings = JSON.parse(saved);
-                    // Populate form fields - BUG #11: Removed email and dietary preferences
-                    if (document.getElementById('setting-name')) {
-                        document.getElementById('setting-name').value = this.userSettings.name || '';
-                        document.getElementById('setting-allergies').value = this.userSettings.allergies || '';
+                try {
+                    const saved = localStorage.getItem('user_settings');
+                    if (saved) {
+                        this.userSettings = JSON.parse(saved);
+                        // Populate form fields - BUG #11: Removed email and dietary preferences
+                        if (document.getElementById('setting-name')) {
+                            document.getElementById('setting-name').value = this.userSettings.name || '';
+                            document.getElementById('setting-allergies').value = this.userSettings.allergies || '';
+                        }
                     }
+                } catch (e) {
+                    console.error('Failed to load settings:', e);
+                    this.userSettings = {};
                 }
             },
 
@@ -1865,9 +1971,9 @@
                 this.photoAttempts++;
                 const T = this.QUALITY_THRESHOLDS;
                 if (quality.score >= T.AUTO_ANALYZE) { this.capturedImages.push(imageData); this.renderCapturedImages(); this.autoAnalyze(); }
-                else if (quality.score >= T.GOOD) { this.capturedImages.push(imageData); this.renderCapturedImages(); this.showToast('Great photo! 📸', 'success'); document.getElementById('analyze-btn').disabled = false; }
-                else if (quality.score >= T.ACCEPTABLE) { this.capturedImages.push(imageData); this.renderCapturedImages(); document.getElementById('analyze-btn').disabled = false; }
-                else if (quality.score >= T.MARGINAL && this.photoAttempts > 1) { if (confirm('Photo quality is marginal. Continue anyway?')) { this.capturedImages.push(imageData); this.renderCapturedImages(); document.getElementById('analyze-btn').disabled = false; this.showToast('Photo added with warning', 'warning'); } }
+                else if (quality.score >= T.GOOD) { this.capturedImages.push(imageData); this.renderCapturedImages(); this.showToast('Great photo! 📸', 'success'); document.getElementById('analyze-btn-bar').disabled = false; }
+                else if (quality.score >= T.ACCEPTABLE) { this.capturedImages.push(imageData); this.renderCapturedImages(); document.getElementById('analyze-btn-bar').disabled = false; }
+                else if (quality.score >= T.MARGINAL && this.photoAttempts > 1) { if (confirm('Photo quality is marginal. Continue anyway?')) { this.capturedImages.push(imageData); this.renderCapturedImages(); document.getElementById('analyze-btn-bar').disabled = false; this.showToast('Photo added with warning', 'warning'); } }
                 else { this.showToast('Photo too blurry. Please retake.', 'error'); }
                 this.updatePhotoCountBadge();
             },
@@ -1894,7 +2000,7 @@
                             if (this.capturedImages.length < this.maxPhotos) {
                                 this.capturedImages.push(ev.target.result);
                                 this.renderCapturedImages();
-                                document.getElementById('analyze-btn').disabled = false;
+                                document.getElementById('analyze-btn-bar').disabled = false;
                                 this.updatePhotoCountBadge();
                                 this.showToast('Photo added', 'success');
                             } else { this.showToast('Maximum 3 photos', 'warning'); }
@@ -2005,10 +2111,13 @@
                     this.updatePhotoCountBadge();
                     // v1.2.0: Auto-start camera (removed Start Camera button)
                     setTimeout(() => this.startCamera(), 300);
+                    // v1.2.2: Show mini history on scanner page
+                    this.updateMiniHistory();
                 } else {
                     document.getElementById('mode-badge')?.classList.remove('visible');
                     document.getElementById('mode-menu')?.classList.remove('visible');
                     document.getElementById('scanner-bottom-bar')?.classList.remove('visible');
+                    document.getElementById('scanner-mini-history')?.classList.remove('visible');
                     // Stop camera when leaving scanner
                     this.stopCamera();
                 }
@@ -2019,23 +2128,17 @@
                 }
             },
 
-            // Scan Mode Toggle
-            setScanMode(mode) {
-                this.scanMode = mode;
-                document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
-                document.getElementById(`mode-${mode}`).classList.add('active');
-                
-                const guideText = document.getElementById('scan-guide-text');
-                if (mode === 'barcode') {
-                    guideText.textContent = '📊 Point at barcode for instant lookup';
-                } else {
-                    guideText.textContent = '📋 Point at ingredient list - any language';
-                }
-            },
+            // v1.2.1: setScanMode() removed - using selectMode() only
 
             // v1.2.0: Camera Functions - Auto-start, no toggle button
             async startCamera() {
                 if (this.cameraActive) return; // Already running
+                
+                // C2: Check if permission was previously denied
+                if (this.cameraPermissionDenied) {
+                    this.showError('CAMERA_DENIED');
+                    return;
+                }
                 
                 const video = document.getElementById('camera-video');
                 const placeholder = document.getElementById('camera-placeholder');
@@ -2062,12 +2165,13 @@
                     if (guideText) {
                         guideText.textContent = this.scanMode === 'barcode' 
                             ? '📊 Point at barcode for instant lookup'
-                            : '📋 Point at ingredient list - any language';
+                            : '📋 Point at ingredient list';
                     }
                 } catch (err) {
                     // BUG #2: Show actionable error instead of generic alert
                     this.logError('CAMERA_ERROR', { name: err.name, message: err.message });
                     if (err.name === 'NotAllowedError') {
+                        this.cameraPermissionDenied = true; // C2: Cache denial
                         this.showError('CAMERA_DENIED');
                     } else if (err.name === 'NotFoundError') {
                         this.showError('CAMERA_UNAVAILABLE');
@@ -2175,7 +2279,9 @@
 
             retryCamera() {
                 this.hideError();
-                this.toggleCamera();
+                // Clear cached denial so we actually retry
+                this.cameraPermissionDenied = false;
+                this.startCamera();
             },
 
             // BUG #2: Gallery fallback handler
@@ -2187,14 +2293,240 @@
             handleGalleryUpload(event) {
                 const file = event.target.files[0];
                 if (!file) return;
+                
+                // Check max photos limit
+                if (this.capturedImages.length >= 3) {
+                    this.showToast('Maximum 3 photos allowed', 'warning');
+                    return;
+                }
 
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    this.capturedImages.push(e.target.result);
-                    this.renderCapturedImages();
-                    document.getElementById('analyze-btn').disabled = false;
+                    // v1.2.2: Open crop modal instead of adding directly
+                    this.openCropModal(e.target.result);
+                };
+                reader.onerror = () => {
+                    this.showToast('Failed to load image', 'error');
                 };
                 reader.readAsDataURL(file);
+            },
+            
+            // v1.2.2: Crop Modal Functions
+            openCropModal(imageData) {
+                this.cropImageData = imageData;
+                this.cropScale = 1;
+                this.cropX = 0;
+                this.cropY = 0;
+                
+                const modal = document.getElementById('crop-modal');
+                const img = document.getElementById('crop-image');
+                
+                img.src = imageData;
+                modal.classList.add('active');
+                
+                // Setup touch handlers for pinch-zoom and drag
+                this.setupCropHandlers();
+            },
+            
+            setupCropHandlers() {
+                const container = document.getElementById('crop-container');
+                const img = document.getElementById('crop-image');
+                
+                let startDistance = 0;
+                let startScale = 1;
+                let startX = 0;
+                let startY = 0;
+                let isDragging = false;
+                
+                // Touch start
+                container.ontouchstart = (e) => {
+                    if (e.touches.length === 2) {
+                        // Pinch start
+                        startDistance = Math.hypot(
+                            e.touches[0].pageX - e.touches[1].pageX,
+                            e.touches[0].pageY - e.touches[1].pageY
+                        );
+                        startScale = this.cropScale;
+                    } else if (e.touches.length === 1) {
+                        // Drag start
+                        isDragging = true;
+                        startX = e.touches[0].pageX - this.cropX;
+                        startY = e.touches[0].pageY - this.cropY;
+                    }
+                };
+                
+                // Touch move
+                container.ontouchmove = (e) => {
+                    e.preventDefault();
+                    if (e.touches.length === 2) {
+                        // Pinch zoom
+                        const distance = Math.hypot(
+                            e.touches[0].pageX - e.touches[1].pageX,
+                            e.touches[0].pageY - e.touches[1].pageY
+                        );
+                        this.cropScale = Math.max(0.5, Math.min(3, startScale * (distance / startDistance)));
+                        this.updateCropTransform();
+                    } else if (e.touches.length === 1 && isDragging) {
+                        // Drag
+                        this.cropX = e.touches[0].pageX - startX;
+                        this.cropY = e.touches[0].pageY - startY;
+                        this.updateCropTransform();
+                    }
+                };
+                
+                // Touch end
+                container.ontouchend = () => {
+                    isDragging = false;
+                };
+                
+                // Mouse support for desktop
+                let isMouseDown = false;
+                container.onmousedown = (e) => {
+                    isMouseDown = true;
+                    startX = e.pageX - this.cropX;
+                    startY = e.pageY - this.cropY;
+                };
+                container.onmousemove = (e) => {
+                    if (isMouseDown) {
+                        this.cropX = e.pageX - startX;
+                        this.cropY = e.pageY - startY;
+                        this.updateCropTransform();
+                    }
+                };
+                container.onmouseup = () => { isMouseDown = false; };
+                container.onmouseleave = () => { isMouseDown = false; };
+                
+                // Mouse wheel for zoom
+                container.onwheel = (e) => {
+                    e.preventDefault();
+                    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+                    this.cropScale = Math.max(0.5, Math.min(3, this.cropScale * delta));
+                    this.updateCropTransform();
+                };
+            },
+            
+            updateCropTransform() {
+                const img = document.getElementById('crop-image');
+                img.style.transform = `translate(${this.cropX}px, ${this.cropY}px) scale(${this.cropScale})`;
+            },
+            
+            cancelCrop() {
+                document.getElementById('crop-modal').classList.remove('active');
+                this.cropImageData = null;
+            },
+            
+            applyCrop() {
+                // Delegate to the unified function
+                this.applyCropForEdit();
+            },
+            
+            // v1.2.2: Mini History Functions
+            updateMiniHistory() {
+                const container = document.getElementById('scanner-mini-history');
+                const list = document.getElementById('mini-history-list');
+                
+                if (!container || !list) return;
+                
+                // Only show if there are scans and user hasn't hidden it
+                if (this.recentScans.length === 0 || !this.miniHistoryVisible) {
+                    container.classList.remove('visible');
+                    return;
+                }
+                
+                container.classList.add('visible');
+                
+                // Show last 3 scans
+                const recentThree = this.recentScans.slice(0, 3);
+                list.innerHTML = recentThree.map((scan, idx) => `
+                    <div class="mini-history-item" onclick="app.viewScanFromHistory(${idx})">
+                        <div class="mini-history-score">${scan.score || '?'}</div>
+                        <div class="mini-history-name">${scan.name || 'Unknown'}</div>
+                    </div>
+                `).join('');
+            },
+            
+            toggleMiniHistory() {
+                this.miniHistoryVisible = !this.miniHistoryVisible;
+                localStorage.setItem('miniHistoryVisible', this.miniHistoryVisible);
+                
+                const container = document.getElementById('scanner-mini-history');
+                const toggle = container?.querySelector('.mini-history-toggle');
+                
+                if (this.miniHistoryVisible) {
+                    container?.classList.add('visible');
+                    if (toggle) toggle.textContent = 'Hide';
+                } else {
+                    container?.classList.remove('visible');
+                    if (toggle) toggle.textContent = 'Show';
+                }
+            },
+            
+            viewScanFromHistory(index) {
+                const scan = this.recentScans[index];
+                if (scan && scan.analysis) {
+                    this.stopCamera();
+                    this.showAnalysis(scan.analysis);
+                    this.showView('analysis');
+                } else {
+                    this.showToast('Scan details not available', 'warning');
+                }
+            },
+            
+            // v1.2.2: Crop an already captured image
+            cropExistingImage(index) {
+                if (index >= 0 && index < this.capturedImages.length) {
+                    this.cropEditIndex = index;
+                    this.openCropModal(this.capturedImages[index]);
+                }
+            },
+            
+            // Modified applyCrop to handle editing existing images
+            applyCropForEdit() {
+                // Same as applyCrop but replaces instead of adds
+                const img = document.getElementById('crop-image');
+                const container = document.getElementById('crop-container');
+                
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                const containerRect = container.getBoundingClientRect();
+                canvas.width = containerRect.width;
+                canvas.height = containerRect.height;
+                
+                const tempImg = new Image();
+                tempImg.onload = () => {
+                    const imgRect = img.getBoundingClientRect();
+                    
+                    const sx = (containerRect.left - imgRect.left) / this.cropScale;
+                    const sy = (containerRect.top - imgRect.top) / this.cropScale;
+                    const sw = containerRect.width / this.cropScale;
+                    const sh = containerRect.height / this.cropScale;
+                    
+                    ctx.drawImage(tempImg, 
+                        Math.max(0, sx), Math.max(0, sy), 
+                        Math.min(tempImg.width, sw), Math.min(tempImg.height, sh),
+                        0, 0, canvas.width, canvas.height
+                    );
+                    
+                    const croppedData = canvas.toDataURL('image/jpeg', 0.9);
+                    
+                    // Replace the existing image
+                    if (this.cropEditIndex !== undefined && this.cropEditIndex >= 0) {
+                        this.capturedImages[this.cropEditIndex] = croppedData;
+                        this.renderCapturedImages();
+                        this.showToast('Photo cropped! ✂️', 'success');
+                        this.cropEditIndex = undefined;
+                    } else {
+                        // Add as new
+                        this.capturedImages.push(croppedData);
+                        this.renderCapturedImages();
+                        document.getElementById('analyze-btn-bar').disabled = false;
+                        this.showToast(`Photo ${this.capturedImages.length} cropped & added! ✂️`, 'success');
+                    }
+                    
+                    this.cancelCrop();
+                };
+                tempImg.src = this.cropImageData;
             },
 
             stopCamera() {
@@ -2262,19 +2594,66 @@
                 });
             },
 
-            captureImage() {
+            // v1.2.1: New capturePhoto() function with quality check and max limit
+            capturePhoto() {
+                // D3: Enforce 3-photo max
+                if (this.capturedImages.length >= 3) {
+                    this.showToast('Maximum 3 photos allowed', 'warning');
+                    return;
+                }
+                
                 const video = document.getElementById('camera-video');
-                const canvas = document.createElement('canvas');
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(video, 0, 0);
                 
-                const imageData = canvas.toDataURL('image/jpeg', 0.9);
-                this.capturedImages.push(imageData);
-                this.renderCapturedImages();
+                // Check video is fully ready
+                if (!video || !this.cameraActive) {
+                    this.showToast('Camera not ready. Please wait...', 'error');
+                    return;
+                }
                 
-                document.getElementById('analyze-btn').disabled = false;
+                // Check video has actual content (not just a black frame)
+                if (video.videoWidth === 0 || video.videoHeight === 0) {
+                    this.showToast('Camera still loading...', 'warning');
+                    return;
+                }
+                
+                try {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(video, 0, 0);
+                    
+                    const imageData = canvas.toDataURL('image/jpeg', 0.9);
+                    
+                    // Verify we got actual image data (not empty)
+                    if (imageData.length < 1000) {
+                        this.showToast('Capture failed. Please try again.', 'error');
+                        return;
+                    }
+                    
+                    this.capturedImages.push(imageData);
+                    this.renderCapturedImages();
+                    
+                    // Update badge
+                    const badge = document.getElementById('photo-count-badge');
+                    if (badge) {
+                        badge.textContent = this.capturedImages.length;
+                        badge.style.display = 'flex';
+                    }
+                    
+                    // Enable analyze button
+                    document.getElementById('analyze-btn-bar').disabled = false;
+                    
+                    this.showToast(`Photo ${this.capturedImages.length} captured! 📸`, 'success');
+                } catch (e) {
+                    console.error('Capture error:', e);
+                    this.showToast('Capture failed. Please try again.', 'error');
+                }
+            },
+
+            // Old captureImage kept for backward compatibility
+            captureImage() {
+                this.capturePhoto(); // Redirect to new function
             },
 
             renderCapturedImages() {
@@ -2282,21 +2661,35 @@
                 container.innerHTML = this.capturedImages.map((img, idx) => `
                     <div class="captured-image" role="listitem">
                         <img src="${img}" alt="Captured image ${idx + 1}">
+                        <button class="crop-image" onclick="app.cropExistingImage(${idx})" aria-label="Crop image ${idx + 1}" style="position:absolute; bottom:4px; left:4px; width:24px; height:24px; border-radius:50%; border:none; background:rgba(22,163,74,0.9); color:white; font-size:12px; cursor:pointer;">✂️</button>
                         <button class="remove-image" onclick="app.removeImage(${idx})" aria-label="Remove image ${idx + 1}">×</button>
                     </div>
                 `).join('');
+                
+                // Update badge
+                const badge = document.getElementById('photo-count-badge');
+                if (badge) {
+                    badge.textContent = this.capturedImages.length;
+                    badge.style.display = this.capturedImages.length > 0 ? 'flex' : 'none';
+                }
             },
 
             removeImage(index) {
                 this.capturedImages.splice(index, 1);
                 this.renderCapturedImages();
                 if (this.capturedImages.length === 0) {
-                    document.getElementById('analyze-btn').disabled = true;
+                    document.getElementById('analyze-btn-bar').disabled = true;
                 }
             },
 
             // Analysis Functions
             async analyzeProduct() {
+                // A3: Validate photos exist
+                if (this.capturedImages.length === 0) {
+                    this.showToast('Please capture at least one photo first', 'error');
+                    return;
+                }
+                
                 this.showLoading('Extracting text from images...');
 
                 try {
@@ -2307,6 +2700,13 @@
                             logger: m => console.log(m)
                         });
                         extractedText += result.data.text + '\n\n';
+                    }
+                    
+                    // A4: Validate text was extracted
+                    if (!extractedText || extractedText.trim().length < 10) {
+                        this.hideLoading();
+                        this.showToast('Could not read any text. Please retake with clearer photo.', 'error');
+                        return;
                     }
 
                     this.updateLoadingMessage('Analyzing with AI...');
@@ -2320,7 +2720,7 @@
                     // Reset
                     this.capturedImages = [];
                     this.renderCapturedImages();
-                    document.getElementById('analyze-btn').disabled = true;
+                    document.getElementById('analyze-btn-bar').disabled = true;
                     this.stopCamera();
 
                 } catch (error) {
@@ -2560,7 +2960,20 @@ Respond ONLY with valid JSON:
                         }
                     );
                     
+                    // Check for network/API errors
+                    if (!response.ok) {
+                        console.error('API response not ok:', response.status);
+                        throw new Error(`API error: ${response.status}`);
+                    }
+                    
                     const data = await response.json();
+                    
+                    // Check for valid response structure
+                    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+                        console.error('Invalid API response structure:', data);
+                        throw new Error('Invalid response from AI');
+                    }
+                    
                     let text = data.candidates[0].content.parts[0].text;
                     text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
                     const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -2575,8 +2988,8 @@ Respond ONLY with valid JSON:
                 } catch (error) {
                     console.error('Gemini API error:', error);
                     this.logError('ERR_API', { message: error.message });
-                    this.showToast('Analysis failed. Please try again.', 'error');
-                    return this.getDemoAnalysis(mode);
+                    // v1.2.1: No demo fallback - throw real error
+                    throw new Error('Analysis failed. Please check your internet connection and try again.');
                 }
             },
 
@@ -2735,113 +3148,42 @@ Respond ONLY with valid JSON:
                 }
             },
 
-            getDemoAnalysis(mode) {
-                if (mode === 'ingredients') {
-                    return {
-                        detectedLanguage: "English",
-                        productName: "Unknown (ingredients only scan)",
-                        category: "food",
-                        healthScore: 45,
-                        scoreCategory: "fair",
-                        scoreReason: "Contains refined flour and palm oil. High sodium content.",
-                        allergyWarnings: [],
-                        ingredients: [
-                            {
-                                name: "Refined Wheat Flour (Maida)",
-                                purpose: "Base ingredient",
-                                healthImpact: "neutral",
-                                details: "Provides carbohydrates but lacks fiber. Digests quickly and can spike blood sugar.",
-                                source: "Wheat grains",
-                                readabilityIssue: false
-                            },
-                            {
-                                name: "Palm Oil",
-                                purpose: "Frying agent",
-                                healthImpact: "negative",
-                                details: "High in saturated fat which can increase cholesterol. Environmental concerns with palm oil production.",
-                                source: "Palm fruit",
-                                readabilityIssue: false
-                            },
-                            {
-                                name: "[Unclear ingredient]",
-                                purpose: "Unknown",
-                                healthImpact: "neutral",
-                                details: "Could not read clearly from image. Please verify on actual product.",
-                                source: "Unknown",
-                                readabilityIssue: "Poor image quality - please verify on product"
-                            }
-                        ],
-                        overallVerdict: "⚠️ Consider alternatives",
-                        trustBadges: [
-                            { type: "caution", text: "High Sodium", standard: "WHO" }
-                        ]
-                    };
-                }
-                
-                return {
-                    productName: "Maggi 2-Minute Noodles (Demo)",
-                    brand: "Nestlé",
-                    category: "food",
-                    healthScore: 45,
-                    scoreCategory: "fair",
-                    scoreReason: "High in sodium and contains preservatives. Provides quick energy but lacks nutritional balance.",
-                    allergyWarnings: [],
-                    macros: {
-                        calories: "310 kcal",
-                        protein: "8g",
-                        carbs: "46g",
-                        fat: "11g",
-                        fiber: "2g",
-                        sugar: "3g"
-                    },
-                    ingredients: [
-                        {
-                            name: "Refined Wheat Flour (Maida)",
-                            purpose: "Base ingredient for noodles",
-                            healthImpact: "neutral",
-                            details: "Provides carbohydrates but lacks fiber. Digests quickly and can spike blood sugar.",
-                            source: "Wheat grains"
-                        },
-                        {
-                            name: "Palm Oil",
-                            purpose: "Frying agent",
-                            healthImpact: "negative",
-                            details: "High in saturated fat which can increase cholesterol. Environmental concerns with palm oil production.",
-                            source: "Palm fruit"
-                        },
-                        {
-                            name: "Monosodium Glutamate (MSG)",
-                            purpose: "Flavor enhancer",
-                            healthImpact: "negative",
-                            details: "Controversial additive. Some people experience reactions. Safe in small amounts per FSSAI.",
-                            source: "Synthetic"
-                        }
-                    ],
-                    certifications: ["FSSAI Licensed"],
-                    trustBadges: [
-                        { type: "verified", text: "FSSAI Approved", standard: "FSSAI" },
-                        { type: "caution", text: "High Sodium", standard: "WHO" }
-                    ],
-                    alternatives: []
-                };
-            },
-
-            getScoreCategory(score) {
-                if (score >= 80) return 'excellent';
-                if (score >= 60) return 'good';
-                if (score >= 40) return 'fair';
-                if (score >= 20) return 'poor';
-                return 'bad';
-            },
+            // v1.2.1: getDemoAnalysis() removed - no fake results
 
             showAnalysis(analysis) {
                 const container = document.getElementById('analysis-content');
-                const scoreClass = `score-${analysis.scoreCategory}`;
+                const scoreClass = `score-${analysis.scoreCategory || 'fair'}`;
 
                 // BUG #5: Calculate and display confidence
-                const confidence = analysis.confidence || 85;  // Default to 85 if not provided
-                const confidenceColor = confidence >= 85 ? '#10B981' : confidence >= 75 ? '#F59E0B' : '#EF4444';
-                const confidenceLabel = confidence >= 85 ? 'High' : confidence >= 75 ? 'Medium' : 'Low';
+                // AI returns "high/medium/low", convert to numeric for display
+                let confidenceValue = analysis.confidence;
+                let confidencePercent, confidenceColor, confidenceLabel;
+                
+                if (typeof confidenceValue === 'string') {
+                    // Convert string to percent
+                    if (confidenceValue === 'high') {
+                        confidencePercent = 90;
+                        confidenceColor = '#10B981';
+                        confidenceLabel = 'High';
+                    } else if (confidenceValue === 'medium') {
+                        confidencePercent = 75;
+                        confidenceColor = '#F59E0B';
+                        confidenceLabel = 'Medium';
+                    } else {
+                        confidencePercent = 60;
+                        confidenceColor = '#EF4444';
+                        confidenceLabel = 'Low';
+                    }
+                } else if (typeof confidenceValue === 'number') {
+                    confidencePercent = confidenceValue;
+                    confidenceColor = confidenceValue >= 85 ? '#10B981' : confidenceValue >= 75 ? '#F59E0B' : '#EF4444';
+                    confidenceLabel = confidenceValue >= 85 ? 'High' : confidenceValue >= 75 ? 'Medium' : 'Low';
+                } else {
+                    // Default
+                    confidencePercent = 75;
+                    confidenceColor = '#F59E0B';
+                    confidenceLabel = 'Medium';
+                }
 
                 let trustBadgesHTML = '';
                 if (analysis.trustBadges && analysis.trustBadges.length > 0) {
@@ -2871,13 +3213,13 @@ Respond ONLY with valid JSON:
                     <div style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: white; border-radius: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-top: 12px;">
                         <div style="width: 8px; height: 8px; border-radius: 50%; background: ${confidenceColor};"></div>
                         <span style="font-size: 13px; font-weight: 600; color: #1E293B;">
-                            ${confidenceLabel} Confidence (${confidence}%)
+                            ${confidenceLabel} Confidence (${confidencePercent}%)
                         </span>
                     </div>
                 `;
 
                 // BUG #5: Low confidence disclaimer
-                const confidenceDisclaimerHTML = confidence < 80 ? `
+                const confidenceDisclaimerHTML = confidencePercent < 80 ? `
                     <div style="background: #FEF3C7; border-left: 4px solid #F59E0B; padding: 12px; border-radius: 8px; margin-top: 16px;">
                         <strong style="color: #92400E;">⚠️ Note:</strong>
                         <span style="color: #78350F; font-size: 14px;">
@@ -2944,28 +3286,24 @@ Respond ONLY with valid JSON:
                     </div>
                 `;
 
-                // BUG #8: Optional contribution prompt
-                const contributionPromptHTML = `
+                // v1.2.1: Save to My Scans prompt (localStorage, no Firebase)
+                const savePromptHTML = `
                     <div style="background: linear-gradient(135deg, #16A34A, #14B8A6); padding: 24px; border-radius: 16px; margin-top: 20px; color: white; text-align: center;">
                         <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 12px;">
-                            Help Others Find This Product?
+                            💾 Save This Scan?
                         </h3>
                         <p style="font-size: 14px; margin-bottom: 20px; opacity: 0.9;">
-                            <strong>Optional:</strong> Add this to our community database so others can look it up by barcode.
+                            Keep this analysis in your personal scan history for quick access later.
                         </p>
                         
                         <div style="display: flex; gap: 12px; justify-content: center;">
-                            <button class="btn" onclick="app.addToDatabase()" style="background: white; color: #16A34A; flex: 1; max-width: 150px;">
-                                ✅ Add Product
+                            <button class="btn" onclick="app.saveToMyScans()" style="background: white; color: #16A34A; flex: 1; max-width: 150px;">
+                                💾 Save
                             </button>
-                            <button class="btn" onclick="app.skipContribution()" style="background: rgba(255,255,255,0.2); color: white; flex: 1; max-width: 150px;">
+                            <button class="btn" onclick="app.skipSave()" style="background: rgba(255,255,255,0.2); color: white; flex: 1; max-width: 150px;">
                                 Skip
                             </button>
                         </div>
-                        
-                        <p style="font-size: 12px; margin-top: 12px; opacity: 0.8;">
-                            No pressure! You can always add it later.
-                        </p>
                     </div>
                 `;
 
@@ -3051,7 +3389,7 @@ Respond ONLY with valid JSON:
                     ` : ''}
 
                     ${alternativesHTML}
-                    ${contributionPromptHTML}
+                    ${savePromptHTML}
 
                     <div class="disclaimer">
                         <strong>⚠️ Important Disclaimer:</strong> This analysis is for educational purposes only and should not be considered medical advice. 
@@ -3088,35 +3426,53 @@ Respond ONLY with valid JSON:
             },
 
             // BUG #8: Contribution handlers
-            addToDatabase() {
-                // BUG #1: Check if user is signed up for contribution
-                if (!this.promptSignupIfContributing('add')) {
-                    return;
-                }
-                alert('🎉 Thanks for wanting to help! Product contribution feature coming in Phase 1.5.\n\nYour contribution will help thousands discover what\'s inside.');
-            },
-
-            skipContribution() {
-                // Simply scroll past - no guilt messaging
-                console.log('User skipped contribution - that\'s okay!');
-            },
-
-            // BUG #1: Progressive signup prompt
-            promptSignupIfContributing(action) {
-                const user = localStorage.getItem('user');
-                if (!user) {
-                    const message = action === 'add' ? 
-                        'Create a free account to add products and help the community!' :
-                        'Create a free account to save your contributions!';
+            // v1.2.1: Save to My Scans (localStorage only, no Firebase)
+            saveToMyScans() {
+                try {
+                    // Get the current analysis from the displayed content
+                    const productName = document.querySelector('.product-name')?.textContent || 'Unknown Product';
+                    const healthScore = document.querySelector('.score-circle')?.textContent?.trim() || '??';
+                    const scoreCategory = document.querySelector('.score-label')?.textContent || 'unknown';
                     
-                    if (confirm(message + '\n\nWant to create an account?\n\n(Tap OK to sign up, Cancel to skip for now)')) {
-                        this.showEmailModal();
-                        return false;
-                    }
-                    return false;
+                    const scan = {
+                        id: Date.now(),
+                        name: productName,
+                        score: parseInt(healthScore) || 0,
+                        category: scoreCategory,
+                        date: new Date().toISOString(),
+                        mode: this.scanMode
+                    };
+                    
+                    // Save to localStorage
+                    let savedScans = JSON.parse(localStorage.getItem('my_saved_scans') || '[]');
+                    savedScans.unshift(scan);
+                    savedScans = savedScans.slice(0, 20); // Keep last 20
+                    localStorage.setItem('my_saved_scans', JSON.stringify(savedScans));
+                    
+                    this.showToast('Saved to My Scans! 💾', 'success');
+                    
+                    // Navigate home after brief delay
+                    setTimeout(() => this.showView('home'), 1500);
+                } catch (e) {
+                    console.error('Failed to save scan:', e);
+                    this.showToast('Failed to save. Please try again.', 'error');
                 }
-                return true;
             },
+
+            skipSave() {
+                // Simply go home - no guilt
+                this.showView('home');
+            },
+
+            // Legacy functions removed
+            addToDatabase() {
+                this.showToast('Community contributions coming in Phase 1.5!', 'info');
+            },
+            skipContribution() {
+                this.skipSave();
+            },
+
+            // v1.2.1: promptSignupIfContributing removed - not needed without Firebase
 
             // BUG #11: Update scan history display
             updateScanHistoryDisplay() {
@@ -3212,6 +3568,14 @@ Respond ONLY with valid JSON:
             },
 
             addToRecentScans(analysis) {
+                // C1: Don't save ingredients-only scans to history
+                if (this.scanMode === 'ingredients' || 
+                    analysis.productName?.includes('Unknown') ||
+                    analysis.productName?.includes('ingredients only')) {
+                    console.log('Ingredients-only scan - not saving to history');
+                    return;
+                }
+                
                 const recent = {
                     name: analysis.productName,
                     brand: analysis.brand,
@@ -3227,10 +3591,15 @@ Respond ONLY with valid JSON:
             },
 
             loadRecentScans() {
-                const saved = localStorage.getItem('recent_scans');
-                if (saved) {
-                    this.recentScans = JSON.parse(saved);
-                    this.renderRecentScans();
+                try {
+                    const saved = localStorage.getItem('recent_scans');
+                    if (saved) {
+                        this.recentScans = JSON.parse(saved);
+                        this.renderRecentScans();
+                    }
+                } catch (e) {
+                    console.error('Failed to load recent scans:', e);
+                    this.recentScans = [];
                 }
             },
 
@@ -3240,10 +3609,12 @@ Respond ONLY with valid JSON:
                 const container = document.getElementById('recent-scans-container');
                 const itemsContainer = document.getElementById('recent-items');
                 
+                if (!container || !itemsContainer) return; // Null check
+                
                 container.style.display = 'block';
                 itemsContainer.innerHTML = this.recentScans.map(scan => `
                     <div class="recent-item">
-                        ${scan.name}
+                        ${scan.name || 'Unknown Product'}
                     </div>
                 `).join('');
             },
@@ -3265,24 +3636,7 @@ Respond ONLY with valid JSON:
                 document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
             },
 
-            showEmailModal() {
-                document.getElementById('email-modal').classList.add('active');
-            },
-
-            showSearchModal() {
-                alert('Search feature coming soon! For now, please use the scan function. 📸');
-            },
-
-            async sendVerificationCode() {
-                const email = document.getElementById('email-input').value;
-                if (!email || !email.includes('@')) {
-                    alert('Please enter a valid email address');
-                    return;
-                }
-                
-                alert('Email verification feature coming soon! For now, you can scan products without verification. 📧');
-                this.closeModal();
-            },
+            // v1.2.1: showSearchModal(), showEmailModal(), sendVerificationCode() removed - Phase 1.5 features
 
             // Loading Functions
             showLoading(message) {
