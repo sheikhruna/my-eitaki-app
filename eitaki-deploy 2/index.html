@@ -5,6 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#16A34A">
     <meta name="description" content="Eitaki - Decode what's really inside your products. Scan ingredients and understand what you're consuming.">
+    
+    <!-- BUG-017 FIX: Content Security Policy for XSS protection -->
+    <meta http-equiv="Content-Security-Policy" 
+          content="default-src 'self'; 
+                   script-src 'self' 
+                              https://cdn.jsdelivr.net 
+                              https://generativelanguage.googleapis.com 
+                              'unsafe-inline'; 
+                   style-src 'self' 'unsafe-inline'; 
+                   img-src 'self' data: https: blob:;
+                   connect-src 'self' 
+                               https://world.openfoodfacts.org 
+                               https://generativelanguage.googleapis.com;
+                   font-src 'self' data:;
+                   media-src 'self' blob:;">
+    
     <title>Eitaki - Decode Every Ingredient</title>
     
     <!--
@@ -527,8 +543,10 @@
             background: var(--vibrant-coral);
             color: white;
             border: none;
-            width: 28px;
-            height: 28px;
+            min-width: 44px;  /* BUG-016 FIX: Increased for better touch target */
+            min-height: 44px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             cursor: pointer;
             display: flex;
@@ -537,6 +555,15 @@
             font-size: 16px;
             font-weight: bold;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        /* BUG-016 FIX: Crop button touch target */
+        .crop-image {
+            min-width: 44px;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .action-buttons {
@@ -1183,26 +1210,6 @@
         .auto-analyze-badge { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); background: rgba(22,163,74,0.95); color: white; padding: 16px 24px; border-radius: 28px; font-size: 15px; font-weight: 600; display: none; align-items: center; gap: 10px; z-index: 20; }
         .auto-analyze-badge.visible { display: flex; animation: modePulse 1.5s infinite; }
         
-        /* Swipeable Cards */
-        .ingredient-carousel { position: relative; overflow: hidden; touch-action: pan-y; }
-        .ingredient-cards-wrapper { display: flex; transition: transform 0.3s ease; }
-        .ingredient-card { flex: 0 0 100%; min-width: 100%; padding: 0 16px; }
-        .carousel-nav { display: flex; justify-content: center; align-items: center; gap: 16px; padding: 16px; }
-        .carousel-dots { display: flex; gap: 6px; }
-        .carousel-dot { width: 8px; height: 8px; border-radius: 50%; background: #D1D5DB; transition: all 0.2s; cursor: pointer; }
-        .carousel-dot.active { background: #16A34A; width: 24px; border-radius: 4px; }
-        .carousel-arrow { width: 36px; height: 36px; border-radius: 50%; border: 1px solid #E5E7EB; background: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: all 0.2s; }
-        .carousel-arrow:hover:not(:disabled) { border-color: #16A34A; color: #16A34A; }
-        .carousel-arrow:disabled { opacity: 0.3; cursor: not-allowed; }
-        
-        /* Voice Input */
-        .input-with-mic { position: relative; }
-        .input-with-mic input { padding-right: 48px; }
-        .mic-btn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 50%; border: none; background: #F3F4F6; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: all 0.2s; }
-        .mic-btn:hover { background: #F0FDF4; }
-        .mic-btn.listening { background: #EF4444; color: white; animation: modePulse 1s infinite; }
-        .mic-btn.hidden { display: none; }
-        
         /* Confidence Badge */
         .confidence-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-top: 12px; }
         .confidence-badge.high { background: rgba(16,185,129,0.15); color: #059669; }
@@ -1464,11 +1471,11 @@
             </button>
             
             <!-- Floating Mode Badge (v1.2.0) -->
-            <div class="mode-badge visible" id="mode-badge" onclick="app.toggleModeMenu()">
+            <button class="mode-badge visible" id="mode-badge" onclick="app.toggleModeMenu()" aria-label="Toggle scan mode menu" aria-expanded="false">
                 <span id="mode-badge-icon">📋</span>
                 <span id="mode-badge-text">Ingredients</span>
                 <span class="mode-badge-arrow">▼</span>
-            </div>
+            </button>
             <div class="mode-menu" id="mode-menu">
                 <div class="mode-menu-item active" id="menu-ingredients" onclick="app.selectMode('ingredients')">📋 Ingredients</div>
                 <div class="mode-menu-item" id="menu-barcode" onclick="app.selectMode('barcode')">📊 Barcode</div>
@@ -1567,11 +1574,11 @@
                     <h3 style="margin-bottom: 16px;">📸 Profile</h3>
                     <div class="settings-item">
                         <div class="settings-label">Name</div>
-                        <div class="input-with-mic"><input type="text" class="settings-input" id="setting-name" placeholder="Your name"><button class="mic-btn" onclick="app.startVoiceInput('setting-name')" aria-label="Voice">🎤</button></div>
+                        <input type="text" class="settings-input" id="setting-name" placeholder="Your name">
                     </div>
                     <div class="settings-item">
                         <div class="settings-label">Food Allergies</div>
-                        <div class="input-with-mic"><input type="text" class="settings-input" id="setting-allergies" placeholder="e.g., peanuts, dairy, gluten">
+                        <input type="text" class="settings-input" id="setting-allergies" placeholder="e.g., peanuts, dairy, gluten">
                         <p style="font-size: 12px; color: var(--light-slate); margin-top: 4px;">
                             Separate multiple allergies with commas
                         </p>
@@ -1829,6 +1836,28 @@
                 ],
                 fallback: 'switchToIngredients',  // v1.2.0: Auto-switch action
                 fallbackText: '📋 Scan Ingredients Instead'
+            },
+            OCR_NOT_LOADED: {
+                code: 'ERR_OCR_INIT',
+                title: '⚠️ Scanner Not Ready',
+                message: 'The text recognition system is still loading. Please wait a moment and try again.',
+                actions: [
+                    'Wait 10 seconds for scanner to initialize',
+                    'Refresh the page if problem persists',
+                    'Check your internet connection (scanner needs to download first time)'
+                ],
+                fallback: 'If this keeps happening, please contact support with error code ERR_OCR_INIT'
+            },
+            NETWORK_ERROR: {
+                code: 'ERR_NETWORK',
+                title: '📡 Connection Lost',
+                message: 'We couldn\'t reach our servers. Check your internet connection.',
+                actions: [
+                    'Verify you\'re connected to WiFi or mobile data',
+                    'Try switching networks',
+                    'Restart your browser'
+                ],
+                fallback: 'Try again when your connection is stable'
             }
         };
 
@@ -1843,7 +1872,6 @@
             recentScans: [],
             scanMode: 'ingredients',  // v1.2.0: Default to ingredients mode (our differentiator)
             userSettings: {},
-            photoAttempt: 1,  // BUG #3: Track photo attempts for quality feedback
             lastAnalysisConfidence: 100,  // BUG #5: Track confidence for display
             // v1.2.2: Crop state
             cropImageData: null,
@@ -1852,7 +1880,10 @@
             cropY: 0,
             miniHistoryVisible: true,
 
-            init() {
+            async init() {
+                // BUG-008 FIX: Wait for libraries to load
+                await this.checkLibrariesReady();
+                
                 // Check if onboarding already completed
                 const onboardingComplete = localStorage.getItem('onboarding_complete');
                 if (onboardingComplete === 'true') {
@@ -1896,23 +1927,47 @@
             QUALITY_THRESHOLDS: { AUTO_ANALYZE: 95, GOOD: 85, ACCEPTABLE: 80, MARGINAL: 75 },
             photoAttempts: 0,
             maxPhotos: 3,
-            currentIngredientIndex: 0,
-            touchStartX: 0,
+            
+            // BUG-008 FIX: Check if scanning libraries are loaded
+            async checkLibrariesReady() {
+                const maxWait = 10000; // 10 seconds timeout
+                const startTime = Date.now();
+                
+                // Show loading indicator
+                this.showToast('Loading scanning tools...', 'info', 10000);
+                
+                while (Date.now() - startTime < maxWait) {
+                    if (typeof Tesseract !== 'undefined' && typeof Quagga !== 'undefined') {
+                        this.showToast('Scanner ready! 📸', 'success');
+                        return true;
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+                
+                // Timeout - libraries didn't load
+                this.showToast('Warning: Some features may not work. Please refresh.', 'warning', 5000);
+                this.logError('ERR_LIB_TIMEOUT', { tesseract: typeof Tesseract, quagga: typeof Quagga });
+                return false;
+            },
             
             toggleModeMenu() {
                 const menu = document.getElementById('mode-menu');
                 const badge = document.getElementById('mode-badge');
-                menu?.classList.toggle('visible');
+                const isVisible = menu?.classList.toggle('visible');
                 badge?.classList.toggle('menu-open');
+                
+                // BUG-015 FIX: Update ARIA state for accessibility
+                badge?.setAttribute('aria-expanded', isVisible);
+                
                 if (!localStorage.getItem('mode_badge_discovered')) {
-                    localStorage.setItem('mode_badge_discovered', 'true');
+                    this.safeLocalStorageSet('mode_badge_discovered', 'true');
                     badge?.classList.remove('pulsing');
                 }
             },
             
             selectMode(mode) {
                 this.scanMode = mode;
-                localStorage.setItem('scan_mode', mode);
+                this.safeLocalStorageSet('scan_mode', mode);
                 this.updateModeUI();
                 document.getElementById('mode-menu')?.classList.remove('visible');
                 document.getElementById('mode-badge')?.classList.remove('menu-open');
@@ -2017,43 +2072,6 @@
                 input.click();
             },
             
-            startVoiceInput(inputId) {
-                if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) { this.showToast('Voice not supported', 'warning'); return; }
-                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                const recognition = new SpeechRecognition();
-                recognition.lang = 'en-IN'; recognition.continuous = false;
-                const input = document.getElementById(inputId);
-                const micBtn = input?.parentElement?.querySelector('.mic-btn');
-                recognition.onstart = () => micBtn?.classList.add('listening');
-                recognition.onresult = (e) => { if (input) input.value = input.value ? `${input.value}, ${e.results[0][0].transcript}` : e.results[0][0].transcript; };
-                recognition.onerror = () => this.showToast('Voice failed', 'error');
-                recognition.onend = () => micBtn?.classList.remove('listening');
-                recognition.start();
-            },
-            
-            initIngredientCarousel() {
-                this.currentIngredientIndex = 0;
-                const carousel = document.getElementById('ingredient-carousel');
-                if (!carousel) return;
-                carousel.addEventListener('touchstart', (e) => { this.touchStartX = e.touches[0].clientX; }, { passive: true });
-                carousel.addEventListener('touchend', (e) => { const diff = this.touchStartX - e.changedTouches[0].clientX; if (Math.abs(diff) > 50) { if (diff > 0) this.nextIngredient(); else this.prevIngredient(); } }, { passive: true });
-            },
-            
-            nextIngredient() { const cards = document.querySelectorAll('.ingredient-card'); if (this.currentIngredientIndex < cards.length - 1) this.goToIngredient(this.currentIngredientIndex + 1); },
-            prevIngredient() { if (this.currentIngredientIndex > 0) this.goToIngredient(this.currentIngredientIndex - 1); },
-            goToIngredient(index) {
-                const cards = document.querySelectorAll('.ingredient-card');
-                if (index < 0 || index >= cards.length) return;
-                this.currentIngredientIndex = index;
-                const wrapper = document.getElementById('ingredient-cards');
-                if (wrapper) wrapper.style.transform = `translateX(-${index * 100}%)`;
-                document.querySelectorAll('.carousel-dot').forEach((dot, i) => dot.classList.toggle('active', i === index));
-                const prev = document.getElementById('carousel-prev');
-                const next = document.getElementById('carousel-next');
-                if (prev) prev.disabled = index === 0;
-                if (next) next.disabled = index === cards.length - 1;
-            },
-            
             toggleExplainer() { document.getElementById('score-explainer')?.classList.toggle('visible'); },
             
             saveSettings() {
@@ -2062,15 +2080,15 @@
                     name: document.getElementById('setting-name').value,
                     allergies: document.getElementById('setting-allergies').value
                 };
-                localStorage.setItem('user_settings', JSON.stringify(this.userSettings));
-                alert('Settings saved! ✓');
+                this.safeLocalStorageSet('user_settings', JSON.stringify(this.userSettings));
+                this.showToast('Settings saved! ✓', 'success');
             },
 
             clearAllData() {
                 if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
                     localStorage.clear();
-                    alert('All data cleared. Reloading app...');
-                    location.reload();
+                    this.showToast('All data cleared. Reloading...', 'success');
+                    setTimeout(() => location.reload(), 1500);
                 }
             },
 
@@ -2085,7 +2103,7 @@
             },
 
             completeOnboarding() {
-                localStorage.setItem('onboarding_complete', 'true');
+                this.safeLocalStorageSet('onboarding_complete', 'true');
                 this.showView('home');
             },
 
@@ -2185,15 +2203,6 @@
                         this.showError('CAMERA_UNAVAILABLE');
                     }
                     console.error('Camera error:', err);
-                }
-            },
-            
-            // Legacy alias for compatibility
-            toggleCamera() {
-                if (this.cameraActive) {
-                    this.stopCamera();
-                } else {
-                    this.startCamera();
                 }
             },
 
@@ -2453,7 +2462,7 @@
             
             toggleMiniHistory() {
                 this.miniHistoryVisible = !this.miniHistoryVisible;
-                localStorage.setItem('miniHistoryVisible', this.miniHistoryVisible);
+                this.safeLocalStorageSet('miniHistoryVisible', this.miniHistoryVisible);
                 
                 const container = document.getElementById('scanner-mini-history');
                 const toggle = container?.querySelector('.mini-history-toggle');
@@ -2664,13 +2673,27 @@
 
             renderCapturedImages() {
                 const container = document.getElementById('captured-images');
-                container.innerHTML = this.capturedImages.map((img, idx) => `
-                    <div class="captured-image" role="listitem">
-                        <img src="${img}" alt="Captured image ${idx + 1}">
-                        <button class="crop-image" onclick="app.cropExistingImage(${idx})" aria-label="Crop image ${idx + 1}" style="position:absolute; bottom:4px; left:4px; width:24px; height:24px; border-radius:50%; border:none; background:rgba(22,163,74,0.9); color:white; font-size:12px; cursor:pointer;">✂️</button>
-                        <button class="remove-image" onclick="app.removeImage(${idx})" aria-label="Remove image ${idx + 1}">×</button>
-                    </div>
-                `).join('');
+                container.innerHTML = this.capturedImages.map((img, idx) => {
+                    // BUG-009 FIX: Add quality indicator
+                    const quality = this.checkPhotoQuality(img);
+                    const qualityColor = quality.score >= 85 ? '#10B981' : quality.score >= 75 ? '#F59E0B' : '#EF4444';
+                    const qualityIcon = quality.score >= 85 ? '✓' : quality.score >= 75 ? '⚠' : '✗';
+                    const qualityLabel = quality.score >= 85 ? 'Good quality' : quality.score >= 75 ? 'Acceptable' : 'Poor quality';
+                    
+                    return `
+                        <div class="captured-image" role="listitem">
+                            <img src="${img}" alt="Captured image ${idx + 1}">
+                            
+                            <!-- Quality indicator dot -->
+                            <div title="${qualityLabel} (${quality.score}%)" style="position: absolute; top: 8px; right: 8px; width: 24px; height: 24px; border-radius: 50%; background: ${qualityColor}; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2); cursor: help;">
+                                ${qualityIcon}
+                            </div>
+                            
+                            <button class="crop-image" onclick="app.cropExistingImage(${idx})" aria-label="Crop image ${idx + 1}" style="position:absolute; bottom:4px; left:4px; border-radius:50%; border:none; background:rgba(22,163,74,0.9); color:white; font-size:12px; cursor:pointer;">✂️</button>
+                            <button class="remove-image" onclick="app.removeImage(${idx})" aria-label="Remove image ${idx + 1}">×</button>
+                        </div>
+                    `;
+                }).join('');
                 
                 // Update badge
                 const badge = document.getElementById('photo-count-badge');
@@ -2731,9 +2754,18 @@
 
                 } catch (error) {
                     this.hideLoading();
-                    // BUG #4: Better error message
-                    this.showError('ANALYSIS_FAILED');
-                    console.error(error);
+                    
+                    // BUG-006 FIX: Better error detection
+                    if (error.message && error.message.includes('Tesseract')) {
+                        this.showError('OCR_NOT_LOADED');
+                    } else if (error.message && (error.message.includes('network') || error.message.includes('fetch'))) {
+                        this.showError('NETWORK_ERROR');
+                    } else {
+                        this.showError('ANALYSIS_FAILED');
+                    }
+                    
+                    console.error('Analysis error:', error);
+                    this.logError('ERR_ANALYSIS', { message: error.message, stack: error.stack });
                 }
             },
 
@@ -3148,7 +3180,7 @@ Respond ONLY with valid JSON:
                         url: window.location.href
                     });
                     // Keep only last 50 errors
-                    localStorage.setItem('eitaki_error_log', JSON.stringify(errors.slice(-50)));
+                    this.safeLocalStorageSet('eitaki_error_log', JSON.stringify(errors.slice(-50)));
                 } catch (e) {
                     console.error('Failed to log error:', e);
                 }
@@ -3453,7 +3485,7 @@ Respond ONLY with valid JSON:
                     let savedScans = JSON.parse(localStorage.getItem('my_saved_scans') || '[]');
                     savedScans.unshift(scan);
                     savedScans = savedScans.slice(0, 20); // Keep last 20
-                    localStorage.setItem('my_saved_scans', JSON.stringify(savedScans));
+                    this.safeLocalStorageSet('my_saved_scans', JSON.stringify(savedScans));
                     
                     this.showToast('Saved to My Scans! 💾', 'success');
                     
@@ -3468,14 +3500,6 @@ Respond ONLY with valid JSON:
             skipSave() {
                 // Simply go home - no guilt
                 this.showView('home');
-            },
-
-            // Legacy functions removed
-            addToDatabase() {
-                this.showToast('Community contributions coming in Phase 1.5!', 'info');
-            },
-            skipContribution() {
-                this.skipSave();
             },
 
             // v1.2.1: promptSignupIfContributing removed - not needed without Firebase
@@ -3555,17 +3579,88 @@ Respond ONLY with valid JSON:
 
             // Legal page placeholders
             showPrivacyPolicy() {
-                alert('📋 Privacy Policy\n\n• All data stored locally on your device\n• No personal data collection\n• No data sharing with third parties\n• Anonymous analytics only\n\nFull privacy policy coming soon!');
+                const modal = `
+                    <div class="modal active" id="privacy-modal" onclick="if(event.target === this) app.closePrivacyModal()">
+                        <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
+                            <h3 class="modal-title">🔒 Privacy Policy</h3>
+                            <div style="font-size: 14px; line-height: 1.8; color: #374151;">
+                                <ul style="margin: 16px 0 0 20px;">
+                                    <li style="margin-bottom: 12px;">All data stored locally on your device</li>
+                                    <li style="margin-bottom: 12px;">No personal data collection</li>
+                                    <li style="margin-bottom: 12px;">No data sharing with third parties</li>
+                                    <li style="margin-bottom: 12px;">Anonymous analytics only</li>
+                                </ul>
+                                <p style="font-size: 13px; color: #6B7280; margin-top: 20px;">
+                                    Full privacy policy coming soon!
+                                </p>
+                            </div>
+                            <div style="margin-top: 20px; text-align: center;">
+                                <button class="btn btn-primary" onclick="app.closePrivacyModal()">Got it!</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.insertAdjacentHTML('beforeend', modal);
+            },
+
+            closePrivacyModal() {
+                const modal = document.getElementById('privacy-modal');
+                if (modal) modal.remove();
             },
 
             showTerms() {
-                alert('📋 Terms of Service\n\n• Eitaki is for educational purposes only\n• Not medical advice\n• Use at your own risk\n• Always verify with product packaging\n\nFull terms coming soon!');
+                const modal = `
+                    <div class="modal active" id="terms-modal" onclick="if(event.target === this) app.closeTermsModal()">
+                        <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
+                            <h3 class="modal-title">📋 Terms of Service</h3>
+                            <div style="font-size: 14px; line-height: 1.8; color: #374151;">
+                                <ul style="margin: 16px 0 0 20px;">
+                                    <li style="margin-bottom: 12px;">Eitaki is for educational purposes only</li>
+                                    <li style="margin-bottom: 12px;">Not medical advice</li>
+                                    <li style="margin-bottom: 12px;">Use at your own risk</li>
+                                    <li style="margin-bottom: 12px;">Always verify with product packaging</li>
+                                </ul>
+                                <p style="font-size: 13px; color: #6B7280; margin-top: 20px;">
+                                    Full terms coming soon!
+                                </p>
+                            </div>
+                            <div style="margin-top: 20px; text-align: center;">
+                                <button class="btn btn-primary" onclick="app.closeTermsModal()">Got it!</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.insertAdjacentHTML('beforeend', modal);
+            },
+
+            closeTermsModal() {
+                const modal = document.getElementById('terms-modal');
+                if (modal) modal.remove();
             },
 
             // Utility Functions
+            
+            // BUG-018 FIX: Safe localStorage wrapper with quota handling
+            safeLocalStorageSet(key, value) {
+                try {
+                    localStorage.setItem(key, value);
+                    return true;
+                } catch (e) {
+                    if (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
+                        this.showToast('Storage full. Please clear old scans in Settings.', 'warning', 5000);
+                        this.logError('ERR_STORAGE_FULL', { key, size: value.length });
+                        return false;
+                    } else {
+                        console.error('localStorage error:', e);
+                        this.logError('ERR_STORAGE', { error: e.message });
+                        return false;
+                    }
+                }
+            },
+            
             incrementScanCount() {
                 this.scanCount++;
-                localStorage.setItem('scan_count', this.scanCount.toString());
+                this.safeLocalStorageSet('scan_count', this.scanCount.toString());
                 
                 // Check if should prompt for email verification (after 5 scans)
                 if (this.scanCount === 5 && !this.emailVerified) {
@@ -3591,7 +3686,7 @@ Respond ONLY with valid JSON:
                 
                 this.recentScans.unshift(recent);
                 this.recentScans = this.recentScans.slice(0, 5); // Keep only 5
-                localStorage.setItem('recent_scans', JSON.stringify(this.recentScans));
+                this.safeLocalStorageSet('recent_scans', JSON.stringify(this.recentScans));
                 this.renderRecentScans();
                 this.updateScanHistoryDisplay();  // BUG #11: Update settings page
             },
@@ -3627,7 +3722,7 @@ Respond ONLY with valid JSON:
 
             // Donation Functions
             donate(amount) {
-                alert(`Thank you for your support! ₹${amount} donation feature coming soon. For now, you can support us by sharing Eitaki with friends! 💚`);
+                this.showToast(`Thank you for your support! ₹${amount} donation feature coming soon. For now, you can support us by sharing Eitaki with friends! 💚`, 'success', 5000);
             },
 
             donateCustom() {
