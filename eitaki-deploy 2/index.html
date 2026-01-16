@@ -16,8 +16,10 @@
                    style-src 'self' 'unsafe-inline'; 
                    img-src 'self' data: https: blob:;
                    connect-src 'self' 
+                               https://cdn.jsdelivr.net
                                https://world.openfoodfacts.org 
                                https://generativelanguage.googleapis.com;
+                   manifest-src 'self' data:;
                    font-src 'self' data:;
                    media-src 'self' blob:;">
     
@@ -1383,8 +1385,7 @@
                     <div class="onboarding-icon">🌱</div>
                     <h1 class="onboarding-title">Welcome to Eitaki</h1>
                     <p class="onboarding-text">
-                        Decode ingredients in everyday products.<br>
-                        <strong>No signup required.</strong>
+                        Decode ingredients in everyday products.
                     </p>
                     
                     <div style="text-align: left; margin: 24px 0; padding: 16px; background: rgba(22, 163, 74, 0.1); border-radius: 12px;">
@@ -1405,10 +1406,6 @@
                     <button class="btn btn-primary" onclick="app.completeOnboarding()" style="width: 100%; font-size: 18px; padding: 16px;">
                         Start Scanning →
                     </button>
-                    
-                    <p style="margin-top: 16px; font-size: 12px; color: #64748B; text-align: center;">
-                        🔒 Your data stays on your device • 💚 No ads
-                    </p>
                 </div>
             </div>
         </div>
@@ -1449,7 +1446,6 @@
                 <ul class="donation-benefits">
                     <li>1,000+ more products analyzed monthly</li>
                     <li>Faster scans for everyone</li>
-                    <li>No ads, ever (we promise!)</li>
                 </ul>
                 <div class="donation-amounts">
                     <button class="donation-btn" onclick="app.donate(20)">₹20<br><small>One chai</small></button>
@@ -1679,7 +1675,7 @@
                         </h2>
                         <div style="margin-bottom: 12px;">
                             <strong style="color: #111827;">🌱 Built for Everyone, Everywhere</strong><br>
-                            <span style="color: #6B7280; font-size: 14px;">No ads, no paywalls, no boundaries</span>
+                            <span style="color: #6B7280; font-size: 14px;">Free ingredient transparency for all</span>
                         </div>
                         <div style="margin-bottom: 12px;">
                             <strong style="color: #111827;">💚 Honest & Transparent</strong><br>
@@ -1879,6 +1875,7 @@
             cropX: 0,
             cropY: 0,
             miniHistoryVisible: true,
+            debugMode: true, // DEBUG MODE: Always enabled for troubleshooting
 
             async init() {
                 // BUG-008 FIX: Wait for libraries to load
@@ -2208,7 +2205,8 @@
 
             // BUG #2: Error display function
             // v1.2.0: Enhanced error display with auto-switch support
-            showError(errorType) {
+            // DEBUG MODE: Shows detailed error info
+            showError(errorType, debugInfo = null) {
                 const error = ERROR_CODES[errorType];
                 if (!error) {
                     console.error('Unknown error type:', errorType);
@@ -2216,7 +2214,24 @@
                 }
                 
                 // Log error
-                this.logError(error.code, { type: errorType });
+                this.logError(error.code, { type: errorType, debugInfo });
+                
+                // DEBUG INFO: Build debug section if available
+                let debugSection = '';
+                if (debugInfo) {
+                    const debugDetails = typeof debugInfo === 'string' ? debugInfo : JSON.stringify(debugInfo, null, 2);
+                    debugSection = `
+                        <details style="text-align: left; margin: 16px 0; padding: 12px; background: #FEF3C7; border-radius: 8px; border: 1px solid #FCD34D;">
+                            <summary style="cursor: pointer; font-weight: 600; color: #92400E; margin-bottom: 8px;">
+                                🔍 Debug Info (Tap to expand)
+                            </summary>
+                            <pre style="font-size: 11px; color: #78350F; white-space: pre-wrap; word-wrap: break-word; margin: 8px 0 0 0; font-family: monospace; background: white; padding: 8px; border-radius: 4px; overflow-x: auto;">${debugDetails}</pre>
+                            <button onclick="app.copyDebugInfo('${debugDetails.replace(/'/g, "\\'")}'); event.stopPropagation();" style="margin-top: 8px; padding: 6px 12px; background: #F59E0B; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;">
+                                📋 Copy Debug Info
+                            </button>
+                        </details>
+                    `;
+                }
                 
                 // Determine fallback button based on error type
                 let fallbackButton = '';
@@ -2254,6 +2269,8 @@
                                 ${error.actions.map(action => `<li style="margin: 6px 0;">${action}</li>`).join('')}
                             </ul>
                         </div>
+                        
+                        ${debugSection}
                         
                         ${fallbackButton}
                         
@@ -2303,6 +2320,44 @@
             useGalleryFallback() {
                 this.hideError();
                 document.getElementById('file-input-fallback').click();
+            },
+            
+            // DEBUG MODE: Copy debug info to clipboard
+            copyDebugInfo(debugText) {
+                try {
+                    // Try modern clipboard API
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(debugText).then(() => {
+                            this.showToast('Debug info copied! 📋', 'success', 2000);
+                        }).catch(() => {
+                            // Fallback for iOS Safari
+                            this.fallbackCopy(debugText);
+                        });
+                    } else {
+                        this.fallbackCopy(debugText);
+                    }
+                } catch (e) {
+                    console.error('Copy failed:', e);
+                    this.showToast('Could not copy. Please screenshot instead.', 'warning', 3000);
+                }
+            },
+            
+            // Fallback copy method for iOS
+            fallbackCopy(text) {
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-999999px';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    this.showToast('Debug info copied! 📋', 'success', 2000);
+                } catch (err) {
+                    this.showToast('Could not copy. Please screenshot instead.', 'warning', 3000);
+                }
+                document.body.removeChild(textArea);
             },
 
             handleGalleryUpload(event) {
@@ -2755,13 +2810,23 @@
                 } catch (error) {
                     this.hideLoading();
                     
-                    // BUG-006 FIX: Better error detection
+                    // Build debug info for troubleshooting
+                    const debugInfo = {
+                        errorMessage: error.message,
+                        errorStack: error.stack ? error.stack.substring(0, 500) : 'No stack trace',
+                        timestamp: new Date().toISOString(),
+                        userAgent: navigator.userAgent,
+                        capturedImagesCount: this.capturedImages.length,
+                        scanMode: this.scanMode
+                    };
+                    
+                    // BUG-006 FIX: Better error detection with debug info
                     if (error.message && error.message.includes('Tesseract')) {
-                        this.showError('OCR_NOT_LOADED');
+                        this.showError('OCR_NOT_LOADED', this.debugMode ? debugInfo : null);
                     } else if (error.message && (error.message.includes('network') || error.message.includes('fetch'))) {
-                        this.showError('NETWORK_ERROR');
+                        this.showError('NETWORK_ERROR', this.debugMode ? debugInfo : null);
                     } else {
-                        this.showError('ANALYSIS_FAILED');
+                        this.showError('ANALYSIS_FAILED', this.debugMode ? debugInfo : null);
                     }
                     
                     console.error('Analysis error:', error);
@@ -3000,8 +3065,26 @@ Respond ONLY with valid JSON:
                     
                     // Check for network/API errors
                     if (!response.ok) {
-                        console.error('API response not ok:', response.status);
-                        throw new Error(`API error: ${response.status}`);
+                        const errorText = await response.text().catch(() => 'Could not read error response');
+                        let errorDetails;
+                        try {
+                            errorDetails = JSON.parse(errorText);
+                        } catch {
+                            errorDetails = errorText;
+                        }
+                        
+                        console.error('API response not ok:', response.status, errorDetails);
+                        
+                        // Provide specific error messages based on status code
+                        if (response.status === 429) {
+                            throw new Error(`API_QUOTA_EXCEEDED: Rate limit or quota exceeded. Status: ${response.status}. Details: ${JSON.stringify(errorDetails).substring(0, 200)}`);
+                        } else if (response.status === 403) {
+                            throw new Error(`API_AUTH_FAILED: Invalid API key or permission denied. Status: ${response.status}. Details: ${JSON.stringify(errorDetails).substring(0, 200)}`);
+                        } else if (response.status === 400) {
+                            throw new Error(`API_BAD_REQUEST: Invalid request format. Status: ${response.status}. Details: ${JSON.stringify(errorDetails).substring(0, 200)}`);
+                        } else {
+                            throw new Error(`API_ERROR_${response.status}: ${JSON.stringify(errorDetails).substring(0, 300)}`);
+                        }
                     }
                     
                     const data = await response.json();
@@ -3009,7 +3092,7 @@ Respond ONLY with valid JSON:
                     // Check for valid response structure
                     if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
                         console.error('Invalid API response structure:', data);
-                        throw new Error('Invalid response from AI');
+                        throw new Error(`INVALID_API_RESPONSE: ${JSON.stringify(data).substring(0, 300)}`);
                     }
                     
                     let text = data.candidates[0].content.parts[0].text;
@@ -3026,8 +3109,8 @@ Respond ONLY with valid JSON:
                 } catch (error) {
                     console.error('Gemini API error:', error);
                     this.logError('ERR_API', { message: error.message });
-                    // v1.2.1: No demo fallback - throw real error
-                    throw new Error('Analysis failed. Please check your internet connection and try again.');
+                    // v1.2.1: Throw detailed error for debugging
+                    throw error; // Preserve the detailed error message
                 }
             },
 
@@ -3585,7 +3668,7 @@ Respond ONLY with valid JSON:
                             <h3 class="modal-title">🔒 Privacy Policy</h3>
                             <div style="font-size: 14px; line-height: 1.8; color: #374151;">
                                 <ul style="margin: 16px 0 0 20px;">
-                                    <li style="margin-bottom: 12px;">All data stored locally on your device</li>
+                                    <li style="margin-bottom: 12px;">We respect your privacy</li>
                                     <li style="margin-bottom: 12px;">No personal data collection</li>
                                     <li style="margin-bottom: 12px;">No data sharing with third parties</li>
                                     <li style="margin-bottom: 12px;">Anonymous analytics only</li>
@@ -3759,10 +3842,7 @@ Respond ONLY with valid JSON:
             app.init();
         });
 
-        // Register service worker for PWA
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('data:application/javascript,');
-        }
+        // Service worker registration removed - will be implemented in Phase 1.5 with Firebase
     </script>
 </body>
 </html>
