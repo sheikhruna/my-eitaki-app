@@ -19,6 +19,8 @@
                                https://cdn.jsdelivr.net
                                https://world.openfoodfacts.org 
                                https://generativelanguage.googleapis.com;
+                   worker-src 'self' blob: https://cdn.jsdelivr.net;
+                   child-src 'self' blob:;
                    manifest-src 'self' data:;
                    font-src 'self' data:;
                    media-src 'self' blob:;">
@@ -48,7 +50,8 @@
     ═══════════════════════════════════════════════════════════════════════
     -->
     
-    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkVpdGFraSAtIERlY29kZSBFdmVyeSBJbmdyZWRpZW50IiwKICAic2hvcnRfbmFtZSI6ICJFaXRha2kiLAogICJkZXNjcmlwdGlvbiI6ICJEZWNvZGUgd2hhdCdzIHJlYWxseSBpbnNpZGUgeW91ciBwcm9kdWN0cyIsCiAgInN0YXJ0X3VybCI6ICIuLyIsCiAgInNjb3BlIjogIi8iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNGRkZGRkYiLAogICJ0aGVtZV9jb2xvciI6ICIjMTZBMzRBIiwKICAib3JpZW50YXRpb24iOiAicG9ydHJhaXQiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWwsJTNDc3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDEwMCAxMDAnJTNFJTNDcmVjdCBmaWxsPSclMjMxNkEzNEEnIHdpZHRoPScxMDAnIGhlaWdodD0nMTAwJy8lM0UlM0N0ZXh0IHg9JzUwJTI1JyB5PSc1MCUyNScgZm9udC1zaXplPSc1MCcgdGV4dC1hbmNob3I9J21pZGRsZScgZHk9Jy4zZW0nJTNF8J+MsSUzQy90ZXh0JTNFJTNDL3N2ZyUzRSIsCiAgICAgICJzaXplcyI6ICIxOTJ4MTkyIiwKICAgICAgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIKICAgIH0sCiAgICB7CiAgICAgICJzcmMiOiAiZGF0YTppbWFnZS9zdmcreG1sLCUzQ3N2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAxMDAgMTAwJyUzRSUzQ3JlY3QgZmlsbD0nJTIzMTZBMzRBJyB3aWR0aD0nMTAwJyBoZWlnaHQ9JzEwMCcvJTNFJTNDdGV4dCB4PSc1MCUyNScgeT0nNTAlMjUnIGZvbnQtc2l6ZT0nNTAnIHRleHQtYW5jaG9yPSdtaWRkbGUnIGR5PScuM2VtJyUzRfCfjLElM0MvdGV4dCUzRSUzQy9zdmclM0UiLAogICAgICAic2l6ZXMiOiAiNTEyeDUxMiIsCiAgICAgICJ0eXBlIjogImltYWdlL3N2Zyt4bWwiCiAgICB9CiAgXQp9Cg==">
+    <!-- PWA Manifest: Removed inline manifest due to browser limitations with data URIs.
+         Will be added as external manifest.json file in Phase 1.5 for proper PWA support. -->
     
     <style>
         * {
