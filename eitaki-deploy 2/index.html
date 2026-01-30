@@ -1796,8 +1796,6 @@
         <!-- v1.2.1: Email Verification Modal removed - Phase 1.5 feature -->
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/quagga/dist/quagga.min.js"></script>
     <script>
         // ═══════════════════════════════════════════════════════════════════════
         // BUG #2 & #4: Error Codes System for actionable error messages
@@ -1806,14 +1804,11 @@
             CAMERA_DENIED: {
                 code: 'ERR_001',
                 title: '📷 Camera Access Needed',
-                message: 'Eitaki needs camera access to scan products.',
-                actions: [
-                    '1. Tap your browser settings (⋮)',
-                    '2. Find "Site settings" or "Permissions"',
-                    '3. Enable Camera for this site',
-                    '4. Refresh and try again'
-                ],
-                fallback: 'Or upload a photo from your gallery instead'
+                message: 'Eitaki needs camera access to scan products. Camera permission was previously denied.',
+                // Additional Fix #4: Instructions will be set dynamically in showError() based on device
+                actions: [], // Populated dynamically by showError() using getCameraPermissionInstructions()
+                fallback: 'Or upload a photo from your gallery instead',
+                showSettingsButton: true // Additional Fix #4: Show settings redirect button
             },
             CAMERA_UNAVAILABLE: {
                 code: 'ERR_002',
@@ -1891,8 +1886,262 @@
             cropY: 0,
             miniHistoryVisible: true,
             debugMode: true, // DEBUG MODE: Always enabled for troubleshooting
+            // Fix #1: Operation guards to prevent concurrent async operations
+            isAnalyzing: false,
+            isInitializingBarcode: false,
+            // Fix #2: Quagga handler cleanup to prevent duplicate event listeners
+            quaggaInitialized: false,
+            quaggaDetectedHandler: null,
+            // Fix #3: Timer tracking to cancel pending operations on navigation
+            autoAnalyzeTimer: null,
+            cameraStartTimer: null,
+            // Additional fixes: Request cancellation
+            currentAbortController: null, // For API request cancellation
+            ocrCancelled: false, // For OCR cancellation
+
+            // ═══════════════════════════════════════════════════════════════
+            // ANALYTICS MODULE - Phase 1 Anonymous Tracking
+            // Implemented: 2024-12-19 (Auth Strategy v1.1)
+            // ═══════════════════════════════════════════════════════════════
+
+            /**
+             * Generates a UUID v4 for anonymous user identification
+             * @returns {string} UUID in format xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+             */
+            generateUserId() {
+                // Use crypto API if available (more secure), fallback to Math.random
+                if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+                    return crypto.randomUUID();
+                }
+                // Fallback for older browsers
+                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                    const r = Math.random() * 16 | 0;
+                    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+            },
+
+            /**
+             * Gets or creates the anonymous user profile
+             * @returns {Object} User profile with eitaki_uid and metadata
+             */
+            getUserProfile() {
+                try {
+                    const stored = localStorage.getItem('eitaki_user_profile');
+                    if (stored) {
+                        const profile = JSON.parse(stored);
+                        // Update last_active on each access
+                        profile.last_active = new Date().toISOString();
+                        this.safeLocalStorageSet('eitaki_user_profile', JSON.stringify(profile));
+                        return profile;
+                    }
+                    
+                    // Create new profile for first-time users
+                    const newProfile = {
+                        eitaki_uid: this.generateUserId(),
+                        created_at: new Date().toISOString(),
+                        last_active: new Date().toISOString(),
+                        app_version: '1.0.0',  // Update with each release
+                        device_category: this.detectDeviceCategory(),
+                        scan_count: 0,
+                        onboarding_completed: false,
+                        // Migration preparation
+                        migrated_to_firebase: false,
+                        firebase_uid: null
+                    };
+                    
+                    this.safeLocalStorageSet('eitaki_user_profile', JSON.stringify(newProfile));
+                    console.log('Created new anonymous user:', newProfile.eitaki_uid);
+                    return newProfile;
+                    
+                } catch (e) {
+                    console.error('Failed to get/create user profile:', e);
+                    this.logError('ERR_PROFILE', { error: e.message });
+                    // Return minimal profile to prevent app crashes
+                    return {
+                        eitaki_uid: 'error-' + Date.now(),
+                        created_at: new Date().toISOString(),
+                        last_active: new Date().toISOString(),
+                        app_version: '1.0.0',
+                        device_category: 'unknown',
+                        scan_count: 0,
+                        onboarding_completed: false
+                    };
+                }
+            },
+
+            /**
+             * Detects device category for analytics
+             * @returns {string} 'mobile' | 'tablet' | 'desktop'
+             */
+            detectDeviceCategory() {
+                const ua = navigator.userAgent.toLowerCase();
+                if (/mobile|android|iphone|ipod|blackberry|windows phone/i.test(ua)) {
+                    return 'mobile';
+                }
+                if (/ipad|tablet/i.test(ua)) {
+                    return 'tablet';
+                }
+                return 'desktop';
+            },
+
+            /**
+             * Updates user profile with new data
+             * @param {Object} updates - Key-value pairs to update
+             */
+            updateUserProfile(updates) {
+                try {
+                    const profile = this.getUserProfile();
+                    Object.assign(profile, updates, { last_active: new Date().toISOString() });
+                    this.safeLocalStorageSet('eitaki_user_profile', JSON.stringify(profile));
+                } catch (e) {
+                    console.error('Failed to update user profile:', e);
+                    this.logError('ERR_PROFILE_UPDATE', { error: e.message });
+                }
+            },
+
+            /**
+             * Tracks user events for analytics and retention insights
+             * Events are stored in FIFO queue (max 100 events)
+             * @param {string} eventName - Event identifier
+             * @param {Object} metadata - Optional event-specific data
+             */
+            trackEvent(eventName, metadata = {}) {
+                try {
+                    const events = this.getEvents();
+                    
+                    const event = {
+                        event: eventName,
+                        timestamp: new Date().toISOString(),
+                        session_id: this.getSessionId(),
+                        metadata: metadata
+                    };
+                    
+                    events.push(event);
+                    
+                    // FIFO: Keep only last 100 events to manage storage
+                    const trimmedEvents = events.slice(-100);
+                    
+                    this.safeLocalStorageSet('eitaki_events', JSON.stringify(trimmedEvents));
+                    
+                    // Debug logging (remove in production)
+                    if (this.debugMode) {
+                        console.log('Event tracked:', eventName, metadata);
+                    }
+                    
+                } catch (e) {
+                    console.error('Failed to track event:', e);
+                    // Don't call logError here to avoid infinite loop if logError uses trackEvent
+                }
+            },
+
+            /**
+             * Gets all stored events
+             * @returns {Array} Array of event objects
+             */
+            getEvents() {
+                try {
+                    const stored = localStorage.getItem('eitaki_events');
+                    return stored ? JSON.parse(stored) : [];
+                } catch (e) {
+                    console.error('Failed to get events:', e);
+                    return [];
+                }
+            },
+
+            /**
+             * Gets or creates session ID for grouping events
+             * Session expires after 30 minutes of inactivity
+             * @returns {string} Session identifier
+             */
+            getSessionId() {
+                const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+                
+                try {
+                    const stored = sessionStorage.getItem('eitaki_session');
+                    if (stored) {
+                        const session = JSON.parse(stored);
+                        const now = Date.now();
+                        
+                        // Check if session is still valid
+                        if (now - session.last_activity < SESSION_TIMEOUT) {
+                            session.last_activity = now;
+                            sessionStorage.setItem('eitaki_session', JSON.stringify(session));
+                            return session.id;
+                        }
+                    }
+                    
+                    // Create new session
+                    const newSession = {
+                        id: 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                        started_at: Date.now(),
+                        last_activity: Date.now()
+                    };
+                    sessionStorage.setItem('eitaki_session', JSON.stringify(newSession));
+                    
+                    // Track session start
+                    this.safeLocalStorageSet('eitaki_last_session', new Date().toISOString());
+                    
+                    return newSession.id;
+                    
+                } catch (e) {
+                    // Fallback if sessionStorage fails
+                    return 'sess_' + Date.now();
+                }
+            },
+
+            /**
+             * Predefined event types for consistency
+             * Use these constants when calling trackEvent()
+             */
+            ANALYTICS_EVENTS: {
+                // Onboarding
+                ONBOARDING_START: 'onboarding_start',
+                ONBOARDING_COMPLETE: 'onboarding_complete',
+                ONBOARDING_SKIP: 'onboarding_skip',
+                
+                // Scanning
+                SCAN_START: 'scan_start',
+                SCAN_COMPLETE: 'scan_complete',
+                SCAN_ERROR: 'scan_error',
+                SCAN_MODE_CHANGE: 'scan_mode_change',
+                
+                // Features
+                VIEW_CHANGE: 'view_change',
+                SETTINGS_SAVE: 'settings_save',
+                HISTORY_VIEW: 'history_view',
+                METHODOLOGY_VIEW: 'methodology_view',
+                
+                // Engagement
+                APP_OPEN: 'app_open',
+                APP_BACKGROUND: 'app_background',
+                SHARE_ATTEMPT: 'share_attempt',
+                
+                // Errors
+                ERROR_CAMERA: 'error_camera',
+                ERROR_NETWORK: 'error_network',
+                ERROR_ANALYSIS: 'error_analysis'
+            },
 
             async init() {
+                // ═══════════════════════════════════════════════════════════
+                // PHASE 1: Initialize Analytics (NEW - Auth Strategy v1.1)
+                // ═══════════════════════════════════════════════════════════
+                
+                // Get or create anonymous user profile
+                const profile = this.getUserProfile();
+                console.log('Eitaki initialized for user:', profile.eitaki_uid);
+                
+                // Track app open event
+                this.trackEvent(this.ANALYTICS_EVENTS.APP_OPEN, {
+                    returning_user: profile.scan_count > 0,
+                    device: profile.device_category
+                });
+                
+                // ═══════════════════════════════════════════════════════════
+                // EXISTING INIT CODE (preserved)
+                // ═══════════════════════════════════════════════════════════
+                
                 // BUG-008 FIX: Wait for libraries to load
                 await this.checkLibrariesReady();
                 
@@ -1900,6 +2149,14 @@
                 const onboardingComplete = localStorage.getItem('onboarding_complete');
                 if (onboardingComplete === 'true') {
                     this.completeOnboarding();
+                    
+                    // Track returning user who completed onboarding
+                    if (!profile.onboarding_completed) {
+                        this.updateUserProfile({ onboarding_completed: true });
+                    }
+                } else {
+                    // Track onboarding start for new users
+                    this.trackEvent(this.ANALYTICS_EVENTS.ONBOARDING_START);
                 }
                 
                 this.scanCount = parseInt(localStorage.getItem('scan_count') || '0');
@@ -1908,10 +2165,24 @@
                 this.setupEventListeners();
                 this.updateScanHistoryDisplay();  // BUG #11: Show scan history
                 this.miniHistoryVisible = localStorage.getItem('miniHistoryVisible') !== 'false';
+                
+                // ═══════════════════════════════════════════════════════════
+                // PHASE 1: Load enhanced scan history (NEW)
+                // ═══════════════════════════════════════════════════════════
+                
+                // Migrate legacy scan history if needed
+                this.migrateLegacyScanHistory();
+                
+                // Generate initial insights (for debugging)
+                if (this.debugMode) {
+                    const insights = this.getInsights();
+                    console.log('User insights:', insights);
+                }
             },
 
             setupEventListeners() {
-                document.getElementById('capture-btn')?.addEventListener('click', () => this.captureImage());
+                // BUG-012 FIX: Use capturePhoto() directly instead of legacy alias
+                document.getElementById('capture-btn')?.addEventListener('click', () => this.capturePhoto());
             },
 
             loadSettings() {
@@ -1957,8 +2228,18 @@
                 }
                 
                 // Timeout - libraries didn't load
-                this.showToast('Warning: Some features may not work. Please refresh.', 'warning', 5000);
+                // Additional Fix #3: Improved timeout message with clear action
+                this.showToast('Scanner tools are taking longer than expected. Please refresh the page to try again.', 'warning', 8000);
                 this.logError('ERR_LIB_TIMEOUT', { tesseract: typeof Tesseract, quagga: typeof Quagga });
+                
+                // Show more detailed error to help user
+                setTimeout(() => {
+                    this.showError('OCR_NOT_LOADED', {
+                        message: 'Scanner libraries failed to load within 10 seconds. This usually means a slow internet connection.',
+                        action: 'Please refresh the page (pull down to refresh on mobile) and wait for libraries to load.'
+                    });
+                }, 2000);
+                
                 return false;
             },
             
@@ -2043,23 +2324,71 @@
             async handleQualityResult(quality, imageData) {
                 this.photoAttempts++;
                 const T = this.QUALITY_THRESHOLDS;
-                if (quality.score >= T.AUTO_ANALYZE) { this.capturedImages.push(imageData); this.renderCapturedImages(); this.autoAnalyze(); }
-                else if (quality.score >= T.GOOD) { this.capturedImages.push(imageData); this.renderCapturedImages(); this.showToast('Great photo! 📸', 'success'); document.getElementById('analyze-btn-bar').disabled = false; }
-                else if (quality.score >= T.ACCEPTABLE) { this.capturedImages.push(imageData); this.renderCapturedImages(); document.getElementById('analyze-btn-bar').disabled = false; }
-                else if (quality.score >= T.MARGINAL && this.photoAttempts > 1) { if (confirm('Photo quality is marginal. Continue anyway?')) { this.capturedImages.push(imageData); this.renderCapturedImages(); document.getElementById('analyze-btn-bar').disabled = false; this.showToast('Photo added with warning', 'warning'); } }
-                else { this.showToast('Photo too blurry. Please retake.', 'error'); }
-                this.updatePhotoCountBadge();
+                if (quality.score >= T.AUTO_ANALYZE) { 
+                    this.capturedImages.push(imageData); 
+                    this.updateCapturedImagesState(); // Fix #4: Use centralized state update
+                    this.autoAnalyze(); 
+                }
+                else if (quality.score >= T.GOOD) { 
+                    this.capturedImages.push(imageData); 
+                    this.updateCapturedImagesState(); // Fix #4: Use centralized state update
+                    this.showToast('Great photo! 📸', 'success'); 
+                }
+                else if (quality.score >= T.ACCEPTABLE) { 
+                    this.capturedImages.push(imageData); 
+                    this.updateCapturedImagesState(); // Fix #4: Use centralized state update
+                }
+                else if (quality.score >= T.MARGINAL && this.photoAttempts > 1) { 
+                    if (confirm('Photo quality is marginal. Continue anyway?')) { 
+                        this.capturedImages.push(imageData); 
+                        this.updateCapturedImagesState(); // Fix #4: Use centralized state update
+                        this.showToast('Photo added with warning', 'warning'); 
+                    } 
+                }
+                else { 
+                    this.showToast('Photo too blurry. Please retake.', 'error'); 
+                }
             },
             
             autoAnalyze() {
+                // Fix #1: Prevent concurrent analysis operations
+                if (this.isAnalyzing) {
+                    console.log('Analysis already in progress, skipping auto-analyze');
+                    return;
+                }
+                // Fix #3: Clear any existing auto-analyze timer before setting new one
+                if (this.autoAnalyzeTimer) {
+                    clearTimeout(this.autoAnalyzeTimer);
+                    this.autoAnalyzeTimer = null;
+                }
                 const badge = document.getElementById('auto-analyze-badge');
                 badge?.classList.add('visible');
-                setTimeout(() => { badge?.classList.remove('visible'); this.analyzeProduct(); }, 800);
+                // Fix #3: Store timer ID so we can cancel it if user navigates away
+                this.autoAnalyzeTimer = setTimeout(() => {
+                    badge?.classList.remove('visible');
+                    this.autoAnalyzeTimer = null; // Clear reference after execution
+                    this.analyzeProduct();
+                }, 800);
             },
             
             updatePhotoCountBadge() {
                 const badge = document.getElementById('photo-count-badge');
                 if (badge) { badge.textContent = this.capturedImages.length; badge.style.display = this.capturedImages.length > 0 ? 'flex' : 'none'; }
+            },
+            
+            // Fix #4: Centralized function to update capturedImages state and sync all UI elements
+            updateCapturedImagesState() {
+                // Update the visual display of images
+                this.renderCapturedImages();
+                
+                // Update photo count badge
+                this.updatePhotoCountBadge();
+                
+                // Update analyze button state - enabled if photos exist, disabled if empty
+                const analyzeBtn = document.getElementById('analyze-btn-bar');
+                if (analyzeBtn) {
+                    analyzeBtn.disabled = this.capturedImages.length === 0;
+                }
             },
             
             openGallery() {
@@ -2072,9 +2401,7 @@
                         reader.onload = (ev) => {
                             if (this.capturedImages.length < this.maxPhotos) {
                                 this.capturedImages.push(ev.target.result);
-                                this.renderCapturedImages();
-                                document.getElementById('analyze-btn-bar').disabled = false;
-                                this.updatePhotoCountBadge();
+                                this.updateCapturedImagesState(); // Fix #4: Use centralized state update
                                 this.showToast('Photo added', 'success');
                             } else { this.showToast('Maximum 3 photos', 'warning'); }
                         };
@@ -2116,11 +2443,37 @@
 
             completeOnboarding() {
                 this.safeLocalStorageSet('onboarding_complete', 'true');
+                
+                // Track onboarding completion (NEW - Auth Strategy v1.1)
+                this.trackEvent(this.ANALYTICS_EVENTS.ONBOARDING_COMPLETE);
+                this.updateUserProfile({ onboarding_completed: true });
+                
                 this.showView('home');
             },
 
             // View Management
             showView(viewName) {
+                // Fix #3: Cancel pending timers before switching views
+                if (this.autoAnalyzeTimer) {
+                    clearTimeout(this.autoAnalyzeTimer);
+                    this.autoAnalyzeTimer = null;
+                }
+                if (this.cameraStartTimer) {
+                    clearTimeout(this.cameraStartTimer);
+                    this.cameraStartTimer = null;
+                }
+                
+                // Additional Fix #1: Cancel in-flight API requests if user navigates away
+                if (this.currentAbortController) {
+                    this.currentAbortController.abort();
+                    this.currentAbortController = null;
+                }
+                
+                // Additional Fix #2: Cancel OCR processing if user navigates away
+                if (this.isAnalyzing) {
+                    this.ocrCancelled = true;
+                }
+                
                 document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
                 document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
                 
@@ -2143,10 +2496,13 @@
                     this.updateModeUI();
                     this.photoAttempts = 0;
                     this.capturedImages = []; // Reset captured images
-                    this.renderCapturedImages();
-                    this.updatePhotoCountBadge();
+                    this.updateCapturedImagesState(); // Fix #4: Use centralized state update
                     // v1.2.0: Auto-start camera (removed Start Camera button)
-                    setTimeout(() => this.startCamera(), 300);
+                    // Fix #3: Store timer ID so we can cancel it if user navigates away quickly
+                    this.cameraStartTimer = setTimeout(() => {
+                        this.cameraStartTimer = null; // Clear reference after execution
+                        this.startCamera();
+                    }, 300);
                     // v1.2.2: Show mini history on scanner page
                     this.updateMiniHistory();
                 } else {
@@ -2162,13 +2518,27 @@
                 if (viewName === 'settings') {
                     this.loadSettings();
                 }
+                
+                // Track view change event (NEW - Auth Strategy v1.1)
+                this.trackEvent(this.ANALYTICS_EVENTS.VIEW_CHANGE, {
+                    from: this.currentView,
+                    to: viewName
+                });
             },
 
             // v1.2.1: setScanMode() removed - using selectMode() only
 
             // v1.2.0: Camera Functions - Auto-start, no toggle button
             async startCamera() {
+                // Fix #5: Check if camera is already active
                 if (this.cameraActive) return; // Already running
+                
+                // Fix #5: Verify we're still in scanner view before starting camera
+                // This prevents camera from starting if user navigated away during the setTimeout delay
+                if (this.currentView !== 'scanner') {
+                    console.log('Not in scanner view, cancelling camera start');
+                    return;
+                }
                 
                 // C2: Check if permission was previously denied
                 if (this.cameraPermissionDenied) {
@@ -2184,10 +2554,25 @@
                     this.stream = await navigator.mediaDevices.getUserMedia({ 
                         video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } } 
                     });
+                    
+                    // Fix #5: Double-check we're still in scanner view after async getUserMedia completes
+                    // User might have navigated away during the permission prompt or camera initialization
+                    if (this.currentView !== 'scanner') {
+                        console.log('User navigated away during camera start, cleaning up');
+                        // Clean up the stream we just got
+                        if (this.stream) {
+                            this.stream.getTracks().forEach(track => track.stop());
+                            this.stream = null;
+                        }
+                        return;
+                    }
+                    
                     video.srcObject = this.stream;
                     video.style.display = 'block';
                     placeholder.style.display = 'none';
                     overlay.style.display = 'flex';
+                    
+                    // Fix #5: Only set cameraActive if we're still in scanner view
                     this.cameraActive = true;
                     this.hideError();  // Clear any previous errors
                     
@@ -2204,6 +2589,9 @@
                             : '📋 Point at ingredient list';
                     }
                 } catch (err) {
+                    // Fix #5: Ensure cameraActive is explicitly false on error
+                    this.cameraActive = false;
+                    
                     // BUG #2: Show actionable error instead of generic alert
                     this.logError('CAMERA_ERROR', { name: err.name, message: err.message });
                     if (err.name === 'NotAllowedError') {
@@ -2218,6 +2606,59 @@
                 }
             },
 
+            // Additional Fix #4: Detect device and get camera permission instructions
+            getCameraPermissionInstructions() {
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                const isAndroid = /Android/.test(navigator.userAgent);
+                
+                if (isIOS) {
+                    return [
+                        '1. Open iPhone Settings app',
+                        '2. Scroll down and tap "Safari" (or your browser)',
+                        '3. Tap "Camera" under Permissions',
+                        '4. Enable camera access for Eitaki',
+                        '5. Return to Eitaki and try again'
+                    ];
+                } else if (isAndroid) {
+                    return [
+                        '1. Open your phone Settings app',
+                        '2. Go to "Apps" or "App permissions"',
+                        '3. Find your browser (Chrome, etc.)',
+                        '4. Tap "Permissions" → "Camera"',
+                        '5. Enable camera access',
+                        '6. Return to Eitaki and try again'
+                    ];
+                } else {
+                    // Desktop/other browsers
+                    return [
+                        '1. Tap your browser settings (⋮)',
+                        '2. Find "Site settings" or "Permissions"',
+                        '3. Enable Camera for this site',
+                        '4. Refresh and try again'
+                    ];
+                }
+            },
+            
+            // Additional Fix #4: Open device settings (works on some mobile browsers)
+            openDeviceSettings() {
+                // Try to open settings - this works on some mobile browsers
+                // iOS Safari: Can't programmatically open Settings, but we show instructions
+                // Android Chrome: May work in some cases
+                if (/Android/.test(navigator.userAgent)) {
+                    // Android - try to open app settings
+                    try {
+                        // Some Android browsers support this
+                        window.location.href = 'intent://settings#Intent;scheme=android-app;end';
+                    } catch(e) {
+                        // Fallback: Show instructions
+                        this.showToast('Please open Settings manually and enable camera permission for your browser', 'info', 6000);
+                    }
+                } else {
+                    // iOS or desktop - show instructions
+                    this.showToast('Please open Settings manually using the instructions above', 'info', 6000);
+                }
+            },
+            
             // BUG #2: Error display function
             // v1.2.0: Enhanced error display with auto-switch support
             // DEBUG MODE: Shows detailed error info
@@ -2226,6 +2667,12 @@
                 if (!error) {
                     console.error('Unknown error type:', errorType);
                     return;
+                }
+                
+                // Additional Fix #4: Get device-specific instructions for camera permission
+                const errorWithActions = { ...error };
+                if (errorType === 'CAMERA_DENIED') {
+                    errorWithActions.actions = this.getCameraPermissionInstructions();
                 }
                 
                 // Log error
@@ -2250,17 +2697,17 @@
                 
                 // Determine fallback button based on error type
                 let fallbackButton = '';
-                if (error.fallback === 'switchToIngredients') {
+                if (errorWithActions.fallback === 'switchToIngredients') {
                     // v1.2.0: Auto-switch to ingredients mode
                     fallbackButton = `
                         <button class="btn btn-secondary" onclick="app.switchToIngredientsMode()" style="margin-bottom: 12px; width: 100%;">
-                            ${error.fallbackText || '📋 Scan Ingredients Instead'}
+                            ${errorWithActions.fallbackText || '📋 Scan Ingredients Instead'}
                         </button>
                     `;
-                } else if (error.fallback) {
+                } else if (errorWithActions.fallback) {
                     fallbackButton = `
                         <p style="font-size: 14px; color: #64748B; margin-bottom: 16px;">
-                            ${error.fallback}
+                            ${errorWithActions.fallback}
                         </p>
                         <button class="btn btn-secondary" onclick="app.useGalleryFallback()" style="margin-bottom: 12px; width: 100%;">
                             📁 Upload from Gallery
@@ -2270,18 +2717,18 @@
                 
                 const html = `
                     <div style="padding: 24px; text-align: center; max-width: 400px; margin: 20px auto;">
-                        <div style="font-size: 48px; margin-bottom: 16px;">${error.title.split(' ')[0]}</div>
+                        <div style="font-size: 48px; margin-bottom: 16px;">${errorWithActions.title.split(' ')[0]}</div>
                         <h3 style="font-size: 20px; font-weight: 700; color: #1E293B; margin-bottom: 12px;">
-                            ${error.title.substring(error.title.indexOf(' ') + 1)}
+                            ${errorWithActions.title.substring(errorWithActions.title.indexOf(' ') + 1)}
                         </h3>
                         <p style="color: #64748B; margin-bottom: 24px; line-height: 1.6;">
-                            ${error.message}
+                            ${errorWithActions.message}
                         </p>
                         
                         <div style="background: #F0FDF4; padding: 16px; border-radius: 12px; margin-bottom: 20px; text-align: left;">
                             <strong style="color: #16A34A; display: block; margin-bottom: 8px;">How to fix:</strong>
                             <ul style="margin: 0; padding-left: 20px; color: #475569;">
-                                ${error.actions.map(action => `<li style="margin: 6px 0;">${action}</li>`).join('')}
+                                ${errorWithActions.actions.map(action => `<li style="margin: 6px 0;">${action}</li>`).join('')}
                             </ul>
                         </div>
                         
@@ -2289,12 +2736,18 @@
                         
                         ${fallbackButton}
                         
+                        ${errorType === 'CAMERA_DENIED' ? `
+                        <button class="btn btn-primary" onclick="app.openDeviceSettings()" style="width: 100%; margin-bottom: 12px; background: #16A34A;">
+                            ⚙️ Open Settings
+                        </button>
+                        ` : ''}
+                        
                         <button class="btn btn-primary" onclick="app.retryCamera()" style="width: 100%;">
                             🔄 Try Again
                         </button>
                         
                         <p style="font-size: 12px; color: #94A3B8; margin-top: 16px;">
-                            Error Code: ${error.code}
+                            Error Code: ${errorWithActions.code}
                         </p>
                     </div>
                 `;
@@ -2326,9 +2779,21 @@
 
             retryCamera() {
                 this.hideError();
-                // Clear cached denial so we actually retry
-                this.cameraPermissionDenied = false;
-                this.startCamera();
+                
+                // Additional Fix #4: On iOS, once permission is denied, OS won't allow asking again
+                // On Android, browser may allow asking again, but for consistency, we'll try once more
+                // If it fails again, user must go to Settings
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                
+                if (isIOS && this.cameraPermissionDenied) {
+                    // iOS: Can't ask again, must go to Settings
+                    this.showError('CAMERA_DENIED');
+                    this.showToast('On iOS, you must enable camera in Settings. Tap "Open Settings" above.', 'info', 6000);
+                } else {
+                    // Android or first attempt: Try asking again
+                    this.cameraPermissionDenied = false;
+                    this.startCamera();
+                }
             },
 
             // BUG #2: Gallery fallback handler
@@ -2598,14 +3063,13 @@
                     // Replace the existing image
                     if (this.cropEditIndex !== undefined && this.cropEditIndex >= 0) {
                         this.capturedImages[this.cropEditIndex] = croppedData;
-                        this.renderCapturedImages();
+                        this.updateCapturedImagesState(); // Fix #4: Use centralized state update
                         this.showToast('Photo cropped! ✂️', 'success');
                         this.cropEditIndex = undefined;
                     } else {
                         // Add as new
                         this.capturedImages.push(croppedData);
-                        this.renderCapturedImages();
-                        document.getElementById('analyze-btn-bar').disabled = false;
+                        this.updateCapturedImagesState(); // Fix #4: Use centralized state update
                         this.showToast(`Photo ${this.capturedImages.length} cropped & added! ✂️`, 'success');
                     }
                     
@@ -2629,13 +3093,66 @@
                 if (overlay) overlay.style.display = 'none';
                 this.cameraActive = false;
                 
+                // Fix #2: Cleanup Quagga handlers before stopping
                 if (window.Quagga) {
-                    try { Quagga.stop(); } catch(e) {}
+                    // Remove the onDetected handler if it exists
+                    if (this.quaggaDetectedHandler) {
+                        try {
+                            Quagga.offDetected(this.quaggaDetectedHandler);
+                        } catch(e) {
+                            console.warn('Failed to remove Quagga handler:', e);
+                        }
+                        this.quaggaDetectedHandler = null;
+                    }
+                    // Stop Quagga
+                    try {
+                        Quagga.stop();
+                    } catch(e) {
+                        console.warn('Failed to stop Quagga:', e);
+                    }
+                    this.quaggaInitialized = false;
                 }
             },
 
             startBarcodeDetection() {
                 if (!window.Quagga) return;
+                
+                // Fix #1: Prevent concurrent Quagga initialization
+                if (this.isInitializingBarcode) {
+                    console.log('Barcode detection already initializing, skipping');
+                    return;
+                }
+                
+                // Fix #7: Prevent re-initialization if Quagga is already initialized and running
+                // This coordinates with Fix #2 - only re-initialize if we need to (e.g., after cleanup)
+                if (this.quaggaInitialized) {
+                    // Check if Quagga is actually running by verifying handler exists
+                    if (this.quaggaDetectedHandler) {
+                        console.log('Quagga already initialized and running, skipping re-initialization');
+                        return;
+                    }
+                    // If initialized but no handler, something went wrong - cleanup and re-init
+                    try {
+                        Quagga.stop();
+                    } catch(e) {
+                        console.warn('Failed to stop Quagga during cleanup:', e);
+                    }
+                    this.quaggaInitialized = false;
+                }
+                
+                // Fix #2: Cleanup existing handlers before re-initializing (if we get here, we need to re-init)
+                if (this.quaggaDetectedHandler) {
+                    try {
+                        Quagga.offDetected(this.quaggaDetectedHandler);
+                        Quagga.stop();
+                    } catch(e) {
+                        console.warn('Failed to cleanup existing Quagga instance:', e);
+                    }
+                    this.quaggaDetectedHandler = null;
+                    this.quaggaInitialized = false;
+                }
+                
+                this.isInitializingBarcode = true;
                 
                 Quagga.init({
                     inputStream: {
@@ -2652,10 +3169,16 @@
                 }, (err) => {
                     if (!err) {
                         Quagga.start();
+                        this.isInitializingBarcode = false; // Fix #1: Reset flag after successful init
+                        this.quaggaInitialized = true; // Fix #2: Mark as initialized
+                    } else {
+                        this.isInitializingBarcode = false; // Fix #1: Reset flag on error
+                        this.quaggaInitialized = false; // Fix #2: Ensure flag is false on error
                     }
                 });
 
-                Quagga.onDetected(async (result) => {
+                // Fix #2: Store handler reference so we can remove it later
+                this.quaggaDetectedHandler = async (result) => {
                     const barcode = result.codeResult.code;
                     console.log("Barcode detected:", barcode);
                     
@@ -2664,19 +3187,39 @@
                     
                     // Try Open Food Facts first
                     this.showLoading('Looking up product...');
-                    const offData = await this.queryOpenFoodFacts(barcode);
                     
-                    if (offData && offData.found) {
+                    try {
+                        // Additional Fix #1: Create AbortController for barcode lookup
+                        this.currentAbortController = new AbortController();
+                        const offData = await this.queryOpenFoodFacts(barcode, this.currentAbortController.signal);
+                        this.currentAbortController = null; // Clear after request completes
+                        
+                        if (offData && offData.found) {
+                            this.hideLoading();
+                            const analysis = this.convertOFFToAnalysis(offData);
+                            this.showAnalysis(analysis);
+                            this.addToRecentScans(analysis);
+                        } else {
+                            this.hideLoading();
+                            // BUG #4: Better error message for product not found
+                            this.showError('BARCODE_NOT_FOUND');
+                        }
+                    } catch (error) {
+                        // Additional Fix #1: Handle cancellation silently
+                        if (error.name === 'AbortError') {
+                            console.log('Barcode lookup cancelled - user navigated away');
+                            this.hideLoading();
+                            this.currentAbortController = null;
+                            return;
+                        }
+                        // Re-throw other errors
                         this.hideLoading();
-                        const analysis = this.convertOFFToAnalysis(offData);
-                        this.showAnalysis(analysis);
-                        this.addToRecentScans(analysis);
-                    } else {
-                        this.hideLoading();
-                        // BUG #4: Better error message for product not found
-                        this.showError('BARCODE_NOT_FOUND');
+                        throw error;
                     }
-                });
+                };
+                
+                // Fix #2: Register the stored handler
+                Quagga.onDetected(this.quaggaDetectedHandler);
             },
 
             // v1.2.1: New capturePhoto() function with quality check and max limit
@@ -2717,18 +3260,7 @@
                     }
                     
                     this.capturedImages.push(imageData);
-                    this.renderCapturedImages();
-                    
-                    // Update badge
-                    const badge = document.getElementById('photo-count-badge');
-                    if (badge) {
-                        badge.textContent = this.capturedImages.length;
-                        badge.style.display = 'flex';
-                    }
-                    
-                    // Enable analyze button
-                    document.getElementById('analyze-btn-bar').disabled = false;
-                    
+                    this.updateCapturedImagesState(); // Fix #4: Use centralized state update
                     this.showToast(`Photo ${this.capturedImages.length} captured! 📸`, 'success');
                 } catch (e) {
                     console.error('Capture error:', e);
@@ -2736,10 +3268,7 @@
                 }
             },
 
-            // Old captureImage kept for backward compatibility
-            captureImage() {
-                this.capturePhoto(); // Redirect to new function
-            },
+            // BUG-012 FIX: Removed legacy captureImage() alias - use capturePhoto() directly
 
             renderCapturedImages() {
                 const container = document.getElementById('captured-images');
@@ -2775,25 +3304,46 @@
 
             removeImage(index) {
                 this.capturedImages.splice(index, 1);
-                this.renderCapturedImages();
-                if (this.capturedImages.length === 0) {
-                    document.getElementById('analyze-btn-bar').disabled = true;
-                }
+                this.updateCapturedImagesState(); // Fix #4: Use centralized state update
             },
 
             // Analysis Functions
             async analyzeProduct() {
+                // Fix #1: Prevent concurrent analysis operations
+                if (this.isAnalyzing) {
+                    this.showToast('Analysis already in progress. Please wait...', 'warning');
+                    return;
+                }
+                
                 // A3: Validate photos exist
                 if (this.capturedImages.length === 0) {
                     this.showToast('Please capture at least one photo first', 'error');
                     return;
                 }
                 
+                // Fix #1: Set flag and disable button to prevent concurrent operations
+                this.isAnalyzing = true;
+                const analyzeBtn = document.getElementById('analyze-btn-bar');
+                if (analyzeBtn) {
+                    analyzeBtn.disabled = true;
+                }
+                
                 this.showLoading('Extracting text from images...');
+                
+                // Additional Fix #2: Reset OCR cancellation flag
+                this.ocrCancelled = false;
 
                 try {
                     let extractedText = '';
                     for (let i = 0; i < this.capturedImages.length; i++) {
+                        // Additional Fix #2: Check if OCR was cancelled (user navigated away)
+                        if (this.ocrCancelled || this.currentView !== 'scanner') {
+                            console.log('OCR cancelled - user navigated away');
+                            this.hideLoading();
+                            this.isAnalyzing = false;
+                            return;
+                        }
+                        
                         this.updateLoadingMessage(`Processing image ${i + 1} of ${this.capturedImages.length}...`);
                         const result = await Tesseract.recognize(this.capturedImages[i], 'eng+hin', {
                             logger: m => console.log(m)
@@ -2801,15 +3351,35 @@
                         extractedText += result.data.text + '\n\n';
                     }
                     
+                    // Additional Fix #2: Check again after OCR loop
+                    if (this.ocrCancelled || this.currentView !== 'scanner') {
+                        console.log('OCR cancelled after processing - user navigated away');
+                        this.hideLoading();
+                        this.isAnalyzing = false;
+                        return;
+                    }
+                    
                     // A4: Validate text was extracted
                     if (!extractedText || extractedText.trim().length < 10) {
                         this.hideLoading();
+                        this.isAnalyzing = false; // Fix #1: Reset flag on early return
+                        const analyzeBtn = document.getElementById('analyze-btn-bar');
+                        if (analyzeBtn && this.capturedImages.length > 0) {
+                            analyzeBtn.disabled = false; // Re-enable if images still exist
+                        }
+                        // Fix #6: Preserve capturedImages array on early return (don't clear) so user can retry
                         this.showToast('Could not read any text. Please retake with clearer photo.', 'error');
                         return;
                     }
 
                     this.updateLoadingMessage('Analyzing with AI...');
-                    const analysis = await this.analyzeWithGemini(extractedText, this.scanMode);
+                    
+                    // Additional Fix #1: Create AbortController for API request cancellation
+                    this.currentAbortController = new AbortController();
+                    const analysis = await this.analyzeWithGemini(extractedText, this.scanMode, this.currentAbortController.signal);
+                    
+                    // Additional Fix #1: Clear abort controller after successful request
+                    this.currentAbortController = null;
                     
                     this.hideLoading();
                     this.showAnalysis(analysis);
@@ -2818,12 +3388,44 @@
                     
                     // Reset
                     this.capturedImages = [];
-                    this.renderCapturedImages();
-                    document.getElementById('analyze-btn-bar').disabled = true;
+                    this.updateCapturedImagesState(); // Fix #4: Use centralized state update
                     this.stopCamera();
+                    
+                    // Fix #1: Reset flag after successful analysis
+                    this.isAnalyzing = false;
 
                 } catch (error) {
+                    // Additional Fix #1: Don't show error if request was cancelled (user navigated away)
+                    if (error.name === 'AbortError') {
+                        console.log('Analysis cancelled - user navigated away');
+                        this.currentAbortController = null;
+                        return; // Silently exit, user already navigated away
+                    }
+                    
+                    // Additional Fix #2: Don't show error if OCR was cancelled
+                    if (this.ocrCancelled) {
+                        console.log('Analysis cancelled - OCR was cancelled');
+                        this.hideLoading();
+                        this.isAnalyzing = false;
+                        this.ocrCancelled = false;
+                        return;
+                    }
+                    
+                    // Fix #6: Error recovery - ensure all state is reset properly
                     this.hideLoading();
+                    
+                    // Fix #1: Reset flag and re-enable button on error
+                    this.isAnalyzing = false;
+                    const analyzeBtn = document.getElementById('analyze-btn-bar');
+                    if (analyzeBtn && this.capturedImages.length > 0) {
+                        analyzeBtn.disabled = false; // Re-enable if images still exist
+                    }
+                    
+                    // Additional Fix #1: Clear abort controller on error
+                    this.currentAbortController = null;
+                    
+                    // Fix #6: Preserve capturedImages array on error (don't clear) so user can retry
+                    // Fix #6: Don't stop camera on error - allow user to retry with same camera session
                     
                     // Build debug info for troubleshooting
                     const debugInfo = {
@@ -2849,10 +3451,12 @@
                 }
             },
 
-            async queryOpenFoodFacts(barcode) {
+            async queryOpenFoodFacts(barcode, signal = null) {
                 try {
+                    // Additional Fix #1: Support request cancellation
                     const response = await fetch(
-                        `https://world.openfoodfacts.org/api/v0/product/${barcode}.json`
+                        `https://world.openfoodfacts.org/api/v0/product/${barcode}.json`,
+                        { signal }
                     );
                     const data = await response.json();
                     
@@ -2869,6 +3473,10 @@
                         };
                     }
                 } catch (error) {
+                    // Additional Fix #1: Don't log error if request was cancelled
+                    if (error.name === 'AbortError') {
+                        throw error; // Re-throw so caller knows request was cancelled
+                    }
                     console.error('Open Food Facts error:', error);
                 }
                 
@@ -2931,7 +3539,7 @@
             },
 
             // v1.2.0: Improved Gemini prompt with compound ingredient handling
-            async analyzeWithGemini(extractedText, mode) {
+            async analyzeWithGemini(extractedText, mode, signal = null) {
                 const GEMINI_API_KEY = 'AIzaSyBRU_8O1QXJaYnx1liyf7j3lhQwpj1fuEU';
                 
                 const basePrompt = mode === 'ingredients' 
@@ -3074,7 +3682,8 @@ Respond ONLY with valid JSON:
                                     temperature: 0.7,
                                     maxOutputTokens: 4096
                                 }
-                            })
+                            }),
+                            signal: signal // Additional Fix #1: Pass abort signal
                         }
                     );
                     
@@ -3608,7 +4217,21 @@ Respond ONLY with valid JSON:
                 if (!historyContainer) return;
                 
                 if (this.recentScans.length === 0) {
-                    historyContainer.innerHTML = '<p style="color: var(--light-slate); font-size: 14px;">No scans yet. Start scanning products!</p>';
+                    // BUG-013 FIX: Encouraging empty state with CTA button
+                    historyContainer.innerHTML = `
+                        <div style="text-align: center; padding: 24px;">
+                            <div style="font-size: 48px; margin-bottom: 12px;">📸</div>
+                            <h3 style="font-size: 18px; font-weight: 700; color: #1E293B; margin-bottom: 8px;">
+                                No Scans Yet
+                            </h3>
+                            <p style="color: #64748B; font-size: 14px; margin-bottom: 20px;">
+                                Scan your first product to see what's really inside!
+                            </p>
+                            <button class="btn btn-primary" onclick="app.showView('scanner')" style="width: 100%;">
+                                📸 Start Scanning
+                            </button>
+                        </div>
+                    `;
                     return;
                 }
                 
@@ -3766,27 +4389,508 @@ Respond ONLY with valid JSON:
                 }
             },
 
+            /**
+             * Migrates legacy scan history to enhanced format
+             * Run once per user - handles users who upgrade
+             */
+            migrateLegacyScanHistory() {
+                try {
+                    // Check if migration already done
+                    if (localStorage.getItem('eitaki_history_migrated') === 'true') {
+                        return;
+                    }
+                    
+                    // Check for legacy data
+                    const legacyScans = localStorage.getItem('recent_scans');
+                    if (!legacyScans) {
+                        localStorage.setItem('eitaki_history_migrated', 'true');
+                        return;
+                    }
+                    
+                    // Check if new format already exists
+                    const newHistory = localStorage.getItem('eitaki_scan_history');
+                    if (newHistory) {
+                        localStorage.setItem('eitaki_history_migrated', 'true');
+                        return;
+                    }
+                    
+                    // Migrate legacy scans
+                    const legacy = JSON.parse(legacyScans);
+                    const migrated = legacy.map((scan, index) => ({
+                        id: 'migrated_' + index + '_' + Date.now(),
+                        timestamp: new Date(scan.timestamp).toISOString(),
+                        name: scan.name || 'Unknown Product',
+                        brand: scan.brand || null,
+                        barcode: null,
+                        health_score: scan.score || null,
+                        score_category: this.getScoreCategory(scan.score),
+                        scan_mode: 'unknown',
+                        categories: [],
+                        flagged_ingredients: [],
+                        product_hash: 'legacy_' + index,
+                        scan_count: 1,
+                        last_scanned: new Date(scan.timestamp).toISOString()
+                    }));
+                    
+                    this.safeLocalStorageSet('eitaki_scan_history', JSON.stringify(migrated));
+                    this.updateScanAggregates(migrated);
+                    localStorage.setItem('eitaki_history_migrated', 'true');
+                    
+                    console.log('Migrated', migrated.length, 'legacy scans to enhanced format');
+                    
+                } catch (e) {
+                    console.error('Failed to migrate legacy scan history:', e);
+                    // Don't block app if migration fails
+                    localStorage.setItem('eitaki_history_migrated', 'true');
+                }
+            },
+
+            /**
+             * Gets full scan history (enhanced format)
+             * @returns {Array} Array of scan records
+             */
+            getFullScanHistory() {
+                try {
+                    const stored = localStorage.getItem('eitaki_scan_history');
+                    return stored ? JSON.parse(stored) : [];
+                } catch (e) {
+                    console.error('Failed to get scan history:', e);
+                    return [];
+                }
+            },
+
+            /**
+             * Categorizes health score for aggregation
+             * @param {number} score - Health score 0-100
+             * @returns {string} Category name
+             */
+            getScoreCategory(score) {
+                if (score === null || score === undefined) return 'unknown';
+                if (score >= 85) return 'excellent';
+                if (score >= 70) return 'good';
+                if (score >= 50) return 'fair';
+                if (score >= 35) return 'poor';
+                return 'very_poor';
+            },
+
+            /**
+             * Extracts concerning ingredients for tracking
+             * @param {Object} analysis - Analysis result
+             * @returns {Array} Array of flagged ingredient names
+             */
+            extractFlaggedIngredients(analysis) {
+                const flagged = [];
+                if (analysis.ingredients) {
+                    analysis.ingredients.forEach(ing => {
+                        if (ing.concern === 'high' || ing.concern === 'moderate') {
+                            flagged.push(ing.name);
+                        }
+                    });
+                }
+                return flagged.slice(0, 10); // Limit to top 10
+            },
+
+            /**
+             * Generates hash for product deduplication
+             * @param {Object} analysis - Analysis result
+             * @returns {string} Hash string
+             */
+            generateProductHash(analysis) {
+                const key = (analysis.barcode || '') + '|' + 
+                            (analysis.productName || '').toLowerCase().trim() + '|' +
+                            (analysis.brand || '').toLowerCase().trim();
+                // Simple hash function
+                let hash = 0;
+                for (let i = 0; i < key.length; i++) {
+                    const char = key.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash = hash & hash; // Convert to 32bit integer
+                }
+                return 'ph_' + Math.abs(hash).toString(36);
+            },
+
+            /**
+             * Updates aggregate statistics from scan history
+             * @param {Array} history - Full scan history
+             */
+            updateScanAggregates(history) {
+                try {
+                    const now = new Date();
+                    const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+                    
+                    const aggregates = {
+                        total_scans: history.length,
+                        unique_products: new Set(history.map(h => h.product_hash)).size,
+                        
+                        // Score distribution
+                        score_distribution: {
+                            excellent: 0,
+                            good: 0,
+                            fair: 0,
+                            poor: 0,
+                            very_poor: 0,
+                            unknown: 0
+                        },
+                        
+                        // Time-based metrics
+                        scans_this_week: history.filter(h => new Date(h.timestamp) > weekAgo).length,
+                        
+                        // Ingredient concerns frequency
+                        top_concerns: {},
+                        
+                        // Average health score
+                        avg_health_score: null,
+                        
+                        // Last updated
+                        updated_at: now.toISOString()
+                    };
+                    
+                    // Calculate distributions
+                    let scoreSum = 0;
+                    let scoreCount = 0;
+                    
+                    history.forEach(scan => {
+                        // Score distribution
+                        if (scan.score_category) {
+                            aggregates.score_distribution[scan.score_category]++;
+                        }
+                        
+                        // Average score
+                        if (scan.health_score !== null) {
+                            scoreSum += scan.health_score;
+                            scoreCount++;
+                        }
+                        
+                        // Concern frequency
+                        if (scan.flagged_ingredients) {
+                            scan.flagged_ingredients.forEach(ing => {
+                                aggregates.top_concerns[ing] = (aggregates.top_concerns[ing] || 0) + 1;
+                            });
+                        }
+                    });
+                    
+                    // Calculate average
+                    aggregates.avg_health_score = scoreCount > 0 ? Math.round(scoreSum / scoreCount) : null;
+                    
+                    // Sort and limit concerns
+                    const sortedConcerns = Object.entries(aggregates.top_concerns)
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 10);
+                    aggregates.top_concerns = Object.fromEntries(sortedConcerns);
+                    
+                    this.safeLocalStorageSet('eitaki_scan_aggregates', JSON.stringify(aggregates));
+                    
+                } catch (e) {
+                    console.error('Failed to update scan aggregates:', e);
+                }
+            },
+
+            /**
+             * Gets user insights based on scan history and behavior
+             * This is the foundation of the "Continuous Value Engine"
+             * @returns {Object} Insights object with recommendations
+             */
+            getInsights() {
+                try {
+                    const profile = this.getUserProfile();
+                    const history = this.getFullScanHistory();
+                    const aggregates = JSON.parse(localStorage.getItem('eitaki_scan_aggregates') || '{}');
+                    const events = this.getEvents();
+                    
+                    const insights = {
+                        // User engagement tier
+                        engagement_tier: this.calculateEngagementTier(profile, history, events),
+                        
+                        // Inferred health concerns
+                        inferred_concerns: this.inferHealthConcerns(history, aggregates),
+                        
+                        // Usage patterns
+                        usage_patterns: this.analyzeUsagePatterns(events),
+                        
+                        // Retention signals
+                        retention_signals: this.calculateRetentionSignals(profile, history, events),
+                        
+                        // Recommendations
+                        recommendations: [],
+                        
+                        // Generated timestamp
+                        generated_at: new Date().toISOString()
+                    };
+                    
+                    // Generate recommendations based on insights
+                    insights.recommendations = this.generateRecommendations(insights, profile, history);
+                    
+                    return insights;
+                    
+                } catch (e) {
+                    console.error('Failed to generate insights:', e);
+                    return { error: e.message };
+                }
+            },
+
+            /**
+             * Calculates user engagement tier
+             * @returns {string} 'new' | 'casual' | 'regular' | 'power'
+             */
+            calculateEngagementTier(profile, history, events) {
+                const daysSinceCreation = (Date.now() - new Date(profile.created_at).getTime()) / (1000 * 60 * 60 * 24);
+                const totalScans = history.length;
+                const scansPerDay = daysSinceCreation > 0 ? totalScans / daysSinceCreation : totalScans;
+                
+                if (daysSinceCreation < 7) return 'new';
+                if (scansPerDay >= 1) return 'power';
+                if (scansPerDay >= 0.3) return 'regular';  // ~2 scans/week
+                return 'casual';
+            },
+
+            /**
+             * Infers health concerns from scan patterns
+             * @returns {Array} Array of concern objects
+             */
+            inferHealthConcerns(history, aggregates) {
+                const concerns = [];
+                
+                // Analyze top flagged ingredients
+                if (aggregates.top_concerns) {
+                    const topConcerns = Object.entries(aggregates.top_concerns)
+                        .slice(0, 3)
+                        .map(([ingredient, count]) => ({
+                            ingredient,
+                            frequency: count,
+                            inferred_concern: this.mapIngredientToConcern(ingredient)
+                        }));
+                    concerns.push(...topConcerns);
+                }
+                
+                // Analyze score patterns
+                if (aggregates.avg_health_score !== null) {
+                    if (aggregates.avg_health_score < 50) {
+                        concerns.push({
+                            type: 'score_pattern',
+                            message: 'Many scanned products have low health scores',
+                            inferred_concern: 'general_health'
+                        });
+                    }
+                }
+                
+                return concerns;
+            },
+
+            /**
+             * Maps ingredient to health concern category
+             */
+            mapIngredientToConcern(ingredient) {
+                const lowerIng = ingredient.toLowerCase();
+                
+                if (/sugar|glucose|fructose|sucrose/i.test(lowerIng)) return 'sugar_intake';
+                if (/sodium|salt/i.test(lowerIng)) return 'sodium_intake';
+                if (/msg|monosodium/i.test(lowerIng)) return 'additives';
+                if (/artificial|color|dye/i.test(lowerIng)) return 'artificial_additives';
+                if (/palm oil|trans fat|hydrogenated/i.test(lowerIng)) return 'unhealthy_fats';
+                if (/preservative|bha|bht|nitrate/i.test(lowerIng)) return 'preservatives';
+                
+                return 'general';
+            },
+
+            /**
+             * Analyzes usage patterns from events
+             */
+            analyzeUsagePatterns(events) {
+                const patterns = {
+                    preferred_scan_mode: 'unknown',
+                    active_hours: [],
+                    feature_usage: {}
+                };
+                
+                if (events.length === 0) return patterns;
+                
+                // Analyze scan mode preference
+                const modeEvents = events.filter(e => e.event === 'scan_complete');
+                const modeCounts = { barcode: 0, ingredients: 0 };
+                modeEvents.forEach(e => {
+                    if (e.metadata?.mode) {
+                        modeCounts[e.metadata.mode]++;
+                    }
+                });
+                patterns.preferred_scan_mode = modeCounts.barcode > modeCounts.ingredients ? 'barcode' : 'ingredients';
+                
+                // Analyze active hours
+                const hourCounts = new Array(24).fill(0);
+                events.forEach(e => {
+                    const hour = new Date(e.timestamp).getHours();
+                    hourCounts[hour]++;
+                });
+                
+                // Get top 3 active hours
+                const sortedHours = hourCounts
+                    .map((count, hour) => ({ hour, count }))
+                    .sort((a, b) => b.count - a.count)
+                    .slice(0, 3)
+                    .filter(h => h.count > 0)
+                    .map(h => h.hour);
+                
+                patterns.active_hours = sortedHours;
+                
+                return patterns;
+            },
+
+            /**
+             * Calculates retention signals
+             */
+            calculateRetentionSignals(profile, history, events) {
+                const now = Date.now();
+                const daysSinceLastActive = (now - new Date(profile.last_active).getTime()) / (1000 * 60 * 60 * 24);
+                const daysSinceLastScan = history.length > 0 
+                    ? (now - new Date(history[0].timestamp).getTime()) / (1000 * 60 * 60 * 24)
+                    : null;
+                
+                return {
+                    days_since_last_active: Math.round(daysSinceLastActive * 10) / 10,
+                    days_since_last_scan: daysSinceLastScan !== null ? Math.round(daysSinceLastScan * 10) / 10 : null,
+                    total_sessions: events.filter(e => e.event === 'app_open').length,
+                    churn_risk: daysSinceLastActive > 14 ? 'high' : daysSinceLastActive > 7 ? 'medium' : 'low'
+                };
+            },
+
+            /**
+             * Generates actionable recommendations
+             */
+            generateRecommendations(insights, profile, history) {
+                const recommendations = [];
+                
+                // For new users
+                if (insights.engagement_tier === 'new') {
+                    recommendations.push({
+                        type: 'onboarding',
+                        message: 'Try scanning a product you regularly buy',
+                        priority: 'high'
+                    });
+                }
+                
+                // For users with health concerns
+                if (insights.inferred_concerns.length > 0) {
+                    const topConcern = insights.inferred_concerns[0];
+                    if (topConcern.inferred_concern === 'sugar_intake') {
+                        recommendations.push({
+                            type: 'health_tip',
+                            message: 'Looking for lower sugar alternatives? Try scanning similar products to compare.',
+                            priority: 'medium'
+                        });
+                    }
+                }
+                
+                // For at-risk users
+                if (insights.retention_signals.churn_risk === 'high') {
+                    recommendations.push({
+                        type: 'engagement',
+                        message: 'We miss you! Scan a product today to stay on top of your health goals.',
+                        priority: 'high'
+                    });
+                }
+                
+                // For power users (premium candidates)
+                if (insights.engagement_tier === 'power' && history.length > 30) {
+                    recommendations.push({
+                        type: 'premium_signal',
+                        message: 'Power user identified - candidate for premium features',
+                        priority: 'low',
+                        internal_only: true
+                    });
+                }
+                
+                return recommendations;
+            },
+
             addToRecentScans(analysis) {
                 // C1: Don't save ingredients-only scans to history
                 if (this.scanMode === 'ingredients' || 
                     analysis.productName?.includes('Unknown') ||
                     analysis.productName?.includes('ingredients only')) {
                     console.log('Ingredients-only scan - not saving to history');
+                    
+                    // Still track the event for analytics (NEW - Auth Strategy v1.1)
+                    this.trackEvent(this.ANALYTICS_EVENTS.SCAN_COMPLETE, {
+                        mode: 'ingredients',
+                        saved_to_history: false
+                    });
                     return;
                 }
                 
-                const recent = {
-                    name: analysis.productName,
-                    brand: analysis.brand,
-                    score: analysis.healthScore,
-                    timestamp: Date.now()
+                // Enhanced scan record with analytics metadata (NEW - Auth Strategy v1.1)
+                const scanRecord = {
+                    id: 'scan_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+                    timestamp: new Date().toISOString(),
+                    
+                    // Product info
+                    name: analysis.productName || 'Unknown Product',
+                    brand: analysis.brand || null,
+                    barcode: analysis.barcode || null,
+                    
+                    // Health data
+                    health_score: analysis.healthScore || null,
+                    score_category: this.getScoreCategory(analysis.healthScore),
+                    
+                    // Scan context
+                    scan_mode: this.scanMode,
+                    
+                    // Extracted insights (for future recommendations)
+                    categories: analysis.categories || [],
+                    flagged_ingredients: this.extractFlaggedIngredients(analysis),
+                    
+                    // For deduplication and repeat tracking
+                    product_hash: this.generateProductHash(analysis)
                 };
                 
-                this.recentScans.unshift(recent);
-                this.recentScans = this.recentScans.slice(0, 5); // Keep only 5
+                // Load existing history
+                let scanHistory = this.getFullScanHistory();
+                
+                // Check for duplicate (same product scanned again)
+                const existingIndex = scanHistory.findIndex(s => s.product_hash === scanRecord.product_hash);
+                if (existingIndex !== -1) {
+                    // Update existing record instead of adding duplicate
+                    scanHistory[existingIndex].last_scanned = scanRecord.timestamp;
+                    scanHistory[existingIndex].scan_count = (scanHistory[existingIndex].scan_count || 1) + 1;
+                    // Move to top of list
+                    const existing = scanHistory.splice(existingIndex, 1)[0];
+                    scanHistory.unshift(existing);
+                } else {
+                    scanRecord.scan_count = 1;
+                    scanRecord.last_scanned = scanRecord.timestamp;
+                    scanHistory.unshift(scanRecord);
+                }
+                
+                // Limit to 100 scans for storage efficiency
+                scanHistory = scanHistory.slice(0, 100);
+                
+                // Save enhanced history
+                this.safeLocalStorageSet('eitaki_scan_history', JSON.stringify(scanHistory));
+                
+                // Update legacy format for backward compatibility
+                this.recentScans = scanHistory.slice(0, 5).map(s => ({
+                    name: s.name,
+                    brand: s.brand,
+                    score: s.health_score,
+                    timestamp: new Date(s.timestamp).getTime()
+                }));
                 this.safeLocalStorageSet('recent_scans', JSON.stringify(this.recentScans));
+                
+                // Update user profile scan count (NEW - Auth Strategy v1.1)
+                this.updateUserProfile({ scan_count: scanHistory.length });
+                
+                // Update aggregate stats (NEW - Auth Strategy v1.1)
+                this.updateScanAggregates(scanHistory);
+                
+                // Track event (NEW - Auth Strategy v1.1)
+                this.trackEvent(this.ANALYTICS_EVENTS.SCAN_COMPLETE, {
+                    mode: this.scanMode,
+                    health_score: scanRecord.health_score,
+                    is_repeat_scan: existingIndex !== -1,
+                    saved_to_history: true
+                });
+                
+                // Update UI
                 this.renderRecentScans();
-                this.updateScanHistoryDisplay();  // BUG #11: Update settings page
+                this.updateScanHistoryDisplay();
             },
 
             loadRecentScans() {
