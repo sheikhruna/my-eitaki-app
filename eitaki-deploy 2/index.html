@@ -13,8 +13,7 @@
                    script-src 'self' 
                               'unsafe-inline'
                               'wasm-unsafe-eval'
-                              https://cdn.jsdelivr.net 
-                              https://generativelanguage.googleapis.com;
+                              https://cdn.jsdelivr.net;
                    worker-src 'self' 
                               blob: 
                               https://cdn.jsdelivr.net;
@@ -24,14 +23,14 @@
                                data:
                                blob:
                                https://cdn.jsdelivr.net
-                               https://world.openfoodfacts.org 
-                               https://generativelanguage.googleapis.com;
+                               https://world.openfoodfacts.org;
                    img-src 'self' 
                            data: 
                            blob: 
                            https:;
                    style-src 'self' 
-                             'unsafe-inline';
+                             'unsafe-inline'
+                             https://cdn.jsdelivr.net;
                    font-src 'self' 
                             data:;
                    media-src 'self' 
@@ -111,8 +110,8 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: var(--pure-white);
-            color: var(--slate);
+            background: #F8F9FA;
+            color: #1A2E35;
             overflow-x: hidden;
             line-height: 1.6;
         }
@@ -123,10 +122,10 @@
             padding-bottom: 70px;
         }
 
-        /* Header - Minimal */
+        /* Header - v1.3 Global styling: white header, dark text */
         .header {
-            background: var(--deep-teal);
-            color: white;
+            background: #FFFFFF;
+            color: #1A2E35;
             padding: 16px 20px;
             box-shadow: 0 2px 8px var(--shadow);
             position: sticky;
@@ -156,11 +155,14 @@
         }
 
         .logo-subtitle {
-            font-size: 11px;
-            opacity: 0.9;
+            font-size: 10px;
+            color: #1A2E35;
+            opacity: 0.85;
             font-weight: 400;
             letter-spacing: 0.5px;
         }
+
+        .logo-name { color: #1A2E35; }
 
         .icon-btn {
             background: rgba(255, 255, 255, 0.2);
@@ -199,12 +201,14 @@
         /* Onboarding */
         .onboarding-container {
             min-height: calc(100vh - 70px);
+            min-height: calc(100dvh - 70px);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 40px 20px;
+            padding: 24px 20px;
             text-align: center;
+            box-sizing: border-box;
         }
 
         .onboarding-screen {
@@ -214,20 +218,24 @@
         }
 
         .onboarding-screen.active {
-            display: block;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             animation: fadeIn 0.4s;
         }
 
         .onboarding-icon {
-            font-size: 80px;
-            margin-bottom: 24px;
+            font-size: 64px;
+            margin-bottom: 16px;
+            flex-shrink: 0;
         }
 
         .onboarding-title {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 700;
             color: var(--deep-teal);
-            margin-bottom: 16px;
+            margin-bottom: 12px;
+            line-height: 1.25;
         }
 
         .onboarding-subtitle {
@@ -238,10 +246,46 @@
         }
 
         .onboarding-text {
-            font-size: 18px;
+            font-size: 16px;
             color: var(--light-slate);
-            margin-bottom: 32px;
-            line-height: 1.6;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .onboarding-features {
+            text-align: left;
+            margin: 0 0 20px 0;
+            padding: 14px 16px;
+            background: rgba(22, 163, 74, 0.1);
+            border-radius: 12px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .onboarding-feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 10px;
+            font-size: 15px;
+            color: var(--slate);
+            line-height: 1.4;
+        }
+
+        .onboarding-feature-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .onboarding-feature-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .onboarding-cta {
+            width: 100%;
+            font-size: 17px;
+            padding: 14px 20px;
+            box-sizing: border-box;
         }
 
         .onboarding-list {
@@ -257,6 +301,42 @@
             display: flex;
             align-items: flex-start;
             gap: 12px;
+        }
+
+        /* Onboarding: fit small viewports (e.g. iPhone with browser chrome) */
+        @media (max-height: 700px) {
+            .onboarding-container {
+                padding: 16px 20px;
+                justify-content: flex-start;
+                padding-top: 20px;
+            }
+            .onboarding-icon {
+                font-size: 48px;
+                margin-bottom: 12px;
+            }
+            .onboarding-title {
+                font-size: 24px;
+                margin-bottom: 8px;
+            }
+            .onboarding-text {
+                font-size: 15px;
+                margin-bottom: 14px;
+            }
+            .onboarding-features {
+                padding: 12px 14px;
+                margin-bottom: 14px;
+            }
+            .onboarding-feature-item {
+                font-size: 14px;
+                margin-bottom: 8px;
+            }
+            .onboarding-feature-icon {
+                font-size: 18px;
+            }
+            .onboarding-cta {
+                font-size: 16px;
+                padding: 12px 16px;
+            }
         }
 
         .btn {
@@ -441,6 +521,15 @@
             overflow: hidden;
             margin-bottom: 20px;
             box-shadow: 0 8px 24px var(--shadow-lg);
+        }
+        /* Optional faint scan-frame (Bug 4 UI spec) */
+        .camera-preview::after {
+            content: '';
+            position: absolute;
+            inset: 16px;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 12px;
+            pointer-events: none;
         }
 
         .camera-video {
@@ -1169,10 +1258,10 @@
         .mode-menu-item:hover { background: #F0FDF4; }
         .mode-menu-item.active { color: #16A34A; font-weight: 600; }
         
-        /* Glass Bottom Bar */
+        /* Glass Bottom Bar - above bottom nav with clear spacing (Bug 4) */
         .scanner-bottom-bar {
             position: fixed;
-            bottom: 24px;
+            bottom: calc(72px + env(safe-area-inset-bottom, 0px));
             left: 50%;
             transform: translateX(-50%);
             z-index: 150;
@@ -1189,23 +1278,44 @@
         }
         .scanner-bottom-bar.visible { display: flex; }
         .bar-btn {
+            border: none;
+            background: none;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            transition: transform 0.2s;
+        }
+        .bar-btn:hover:not(:disabled) { transform: scale(1.05); }
+        .bar-btn-icon {
             position: relative;
             width: 52px;
             height: 52px;
             border-radius: 50%;
-            border: none;
             background: #F0FDF4;
-            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 22px;
-            transition: all 0.2s;
         }
-        .bar-btn:hover { background: #DCFCE7; transform: scale(1.05); }
-        .bar-btn.capture { width: 68px; height: 68px; background: #16A34A; color: white; font-size: 28px; box-shadow: 0 4px 16px rgba(22,163,74,0.4); }
-        .bar-btn.capture:hover { background: #15803D; }
+        .bar-btn:hover:not(:disabled) .bar-btn-icon { background: #DCFCE7; }
+        .bar-btn svg { width: 24px; height: 24px; display: block; }
+        .bar-btn-gallery svg { color: #475569; }
+        .bar-btn.capture .bar-btn-icon {
+            width: 68px;
+            height: 68px;
+            background: #16A34A;
+            box-shadow: 0 4px 16px rgba(22,163,74,0.4);
+        }
+        .bar-btn.capture:hover:not(:disabled) .bar-btn-icon { background: #15803D; }
+        .bar-btn.capture svg { width: 32px; height: 32px; color: white; }
         .bar-btn .badge { position: absolute; top: -4px; right: -4px; background: #EF4444; color: white; font-size: 11px; font-weight: 700; min-width: 20px; height: 20px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        .bar-btn .bar-btn-icon { font-size: 22px; font-weight: 700; color: #16A34A; }
+        .bar-btn:disabled .bar-btn-icon { color: #94A3B8; }
+        .bar-btn-label { font-size: 11px; font-weight: 600; color: #475569; }
+        .bar-btn.capture .bar-btn-label { color: white; }
+        .bar-btn:disabled .bar-btn-label { color: #94A3B8; }
         
         /* Toast */
         .toast-container { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); z-index: 9999; pointer-events: none; }
@@ -1282,23 +1392,15 @@
         .crop-header .crop-done:hover { background: #15803D; }
         .crop-container {
             flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            min-height: 50vh;
             overflow: hidden;
             position: relative;
+            background: #000;
         }
-        .crop-image {
+        .crop-container img {
+            display: block;
             max-width: 100%;
             max-height: 100%;
-            object-fit: contain;
-            touch-action: none;
-        }
-        .crop-overlay {
-            position: absolute;
-            border: 2px dashed #16A34A;
-            background: rgba(22, 163, 74, 0.1);
-            pointer-events: none;
         }
         .crop-instructions {
             padding: 12px;
@@ -1306,6 +1408,55 @@
             color: #94A3B8;
             font-size: 14px;
             background: rgba(0,0,0,0.5);
+        }
+        /* Crop preview overlay: show cropped image + Close before returning to scanner */
+        .crop-preview-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 1001;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .crop-preview-overlay.active { display: flex; }
+        .crop-preview-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            max-width: 100%;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+        .crop-preview-title {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #1E293B;
+        }
+        .crop-preview-img {
+            max-width: 100%;
+            max-height: 60vh;
+            object-fit: contain;
+            border-radius: 12px;
+        }
+        /* v1.3: Confirmation popup progress ring (1500ms) */
+        .progress-ring-fill {
+            transition: stroke-dashoffset 1.5s linear;
+        }
+        #view-confirmation-popup.active .progress-ring-fill {
+            stroke-dashoffset: 0;
+        }
+        .skeleton-cell { animation: skeleton-pulse 1.5s ease-in-out infinite; }
+        @keyframes skeleton-pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+
+        .crop-preview-close {
+            width: 100%;
+            max-width: 280px;
         }
         
         /* v1.2.2: Mini Recent Scans on Scanner Page */
@@ -1374,6 +1525,9 @@
     
     <!-- BUG-002 FIX: Add QuaggaJS for barcode scanning -->
     <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
+    <!-- Cropper.js for iPhone-style crop (crop thumbnail fix) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.1/dist/cropper.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.1/dist/cropper.min.js"></script>
 </head>
 <body>
 
@@ -1385,11 +1539,6 @@
                     <div class="logo-name">🌱 Eitaki</div>
                     <div class="logo-subtitle">Decode Every Ingredient</div>
                 </div>
-                <div>
-                    <button class="icon-btn" onclick="app.showView('settings')" aria-label="Settings">
-                        ⚙️
-                    </button>
-                </div>
             </div>
         </header>
 
@@ -1398,78 +1547,29 @@
             <div class="onboarding-container">
                 <div class="onboarding-screen active" id="onboarding-1">
                     <div class="onboarding-icon">🌱</div>
-                    <h1 class="onboarding-title">Welcome to Eitaki</h1>
+                    <h1 class="onboarding-title">See Beyond the Label</h1>
                     <p class="onboarding-text">
-                        Decode ingredients in everyday products.
+                        Hidden sugars. Confusing labels. Not anymore.
                     </p>
                     
-                    <div style="text-align: left; margin: 24px 0; padding: 16px; background: rgba(22, 163, 74, 0.1); border-radius: 12px;">
-                        <div style="margin-bottom: 12px; display: flex; align-items: center; gap: 12px;">
-                            <span style="font-size: 24px;">📸</span>
-                            <span>Scan barcode or ingredient list</span>
+                    <div class="onboarding-features">
+                        <div class="onboarding-feature-item">
+                            <span class="onboarding-feature-icon">📸</span>
+                            <span>Scan any product to see what it's really made of</span>
                         </div>
-                        <div style="margin-bottom: 12px; display: flex; align-items: center; gap: 12px;">
-                            <span style="font-size: 24px;">🔬</span>
-                            <span>Get AI-powered analysis</span>
+                        <div class="onboarding-feature-item">
+                            <span class="onboarding-feature-icon">🔬</span>
+                            <span>Understand what each ingredient actually does to your body</span>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <span style="font-size: 24px;">💚</span>
-                            <span>Make informed choices</span>
+                        <div class="onboarding-feature-item">
+                            <span class="onboarding-feature-icon">💚</span>
+                            <span>Shop smarter for you and your family</span>
                         </div>
                     </div>
                     
-                    <button class="btn btn-primary" onclick="app.completeOnboarding()" style="width: 100%; font-size: 18px; padding: 16px;">
-                        Start Scanning →
+                    <button class="btn btn-primary onboarding-cta" onclick="app.completeOnboarding(); app.showView('scanner');">
+                        Scan Your First Product →
                     </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Home View - Laser Focused -->
-        <div id="view-home" class="view">
-            <div style="background: linear-gradient(135deg, #F0FDF4, #DCFCE7); padding: 12px 20px; text-align: center; font-size: 14px; font-weight: 600; color: #166534; border-bottom: 2px solid #86EFAC;">
-                🧪 Beta Testing Phase - Help us improve! <a href="https://forms.gle/vnhGDgAVUUeid1SY8" style="color: #16A34A; text-decoration: underline;">Share Feedback</a>
-            </div>
-            <div class="home-hero">
-                <div class="hero-icon" role="img" aria-label="Plant seedling">🌱</div>
-                <h1 class="hero-title">
-                    Decode Every<br>Ingredient
-                </h1>
-                <p class="hero-subtitle">
-                    Scan any product and decode complex ingredients in seconds
-                </p>
-                <button class="scan-btn-large" onclick="app.showView('scanner')" aria-label="Start scanning products">
-                    📸 SCAN PRODUCT
-                </button>
-                <!-- v1.2.1: Search link removed - Phase 1.5 feature -->
-                
-                <div class="recent-scans" id="recent-scans-container" style="display: none;">
-                    <div class="recent-title">Recent Scans</div>
-                    <div class="recent-items" id="recent-items"></div>
-                </div>
-            </div>
-
-            <!-- Donation Card - Hidden in Beta -->
-            <div class="donation-card" style="display: none;">
-                <h3 class="donation-title">💚 Help Us Decode More Products</h3>
-                <p class="donation-text">
-                    Every day, families trust us to decode what's really inside their food, shampoo, and baby products.
-                </p>
-                <div class="donation-text" style="margin-top: 12px;">
-                    <strong>Your support means:</strong>
-                </div>
-                <ul class="donation-benefits">
-                    <li>1,000+ more products analyzed monthly</li>
-                    <li>Faster scans for everyone</li>
-                </ul>
-                <div class="donation-amounts">
-                    <button class="donation-btn" onclick="app.donate(20)">₹20<br><small>One chai</small></button>
-                    <button class="donation-btn" onclick="app.donate(50)">₹50<br><small>Samosa party</small></button>
-                    <button class="donation-btn" onclick="app.donate(100)">₹100<br><small>Full meal</small></button>
-                    <button class="donation-btn" onclick="app.donateCustom()">Custom</button>
-                </div>
-                <div class="donation-footer">
-                    Made with 💚 by people who believe you deserve to know what you're consuming
                 </div>
             </div>
         </div>
@@ -1477,7 +1577,7 @@
         <!-- Scanner View -->
         <div id="view-scanner" class="view">
             <!-- v1.2.1: X close button -->
-            <button onclick="app.showView('home')" style="position: fixed; top: 16px; right: 16px; z-index: 200; width: 40px; height: 40px; border-radius: 50%; border: none; background: rgba(0,0,0,0.5); color: white; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+            <button onclick="app.showView('settings')" style="position: fixed; top: 16px; right: 16px; z-index: 200; width: 40px; height: 40px; border-radius: 50%; border: none; background: rgba(0,0,0,0.5); color: white; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;" aria-label="Close to Preferences">
                 ✕
             </button>
             
@@ -1495,7 +1595,7 @@
             <div class="scanner-container">
                 <div class="scanner-header">
                     <h2 class="scanner-title">Scan Product</h2>
-                    <p class="scanner-subtitle" id="scanner-subtitle">Point at ingredient list</p>
+                    <p class="scanner-subtitle" id="scanner-subtitle">Point at ingredients or barcode</p>
                 </div>
 
                 <!-- v1.2.1: Old tabs removed - using floating badge only -->
@@ -1515,7 +1615,7 @@
                     <div class="auto-analyze-badge" id="auto-analyze-badge">✨ Auto-analyzing...</div>
                     <div class="camera-overlay" style="display:none;" id="camera-overlay">
                         <div class="scan-guide" role="status" aria-live="polite" id="scan-guide-text">
-                            📋 Point at ingredient list
+                            Point at ingredients or barcode
                         </div>
                         <div class="capture-area" aria-hidden="true"></div>
                     </div>
@@ -1523,20 +1623,39 @@
 
                 <div class="captured-images" id="captured-images" role="list" aria-label="Captured images"></div>
 
-                <!-- BUG #2: Hidden file input for gallery fallback -->
+                <!-- Hidden file input for "Upload from Gallery" on camera error card (opens crop → analyze) -->
                 <input type="file" id="file-input-fallback" accept="image/*" style="display: none;" onchange="app.handleGalleryUpload(event)">
 
-                <!-- BUG #3: Scanner result area for quality feedback and errors -->
+                <!-- Scanner result area: quality feedback and error cards -->
                 <div id="scanner-result" style="display: none;"></div>
 
                 <!-- v1.2.0: Old action buttons removed - using glass morphism bottom bar instead -->
             </div>
         
-            <!-- Glass Morphism Bottom Bar (v1.2.0) -->
+            <!-- Glass Morphism Bottom Bar (v1.2.0). Patterns: tap = photo, long-press reserved for video/burst; gallery = camera + uploads. -->
             <div class="scanner-bottom-bar" id="scanner-bottom-bar">
-                <button class="bar-btn" onclick="app.openGallery()" aria-label="Gallery">🖼️<span class="badge" id="photo-count-badge" style="display:none;">0</span></button>
-                <button class="bar-btn capture" id="capture-btn-main" onclick="app.capturePhoto()" aria-label="Capture">📷</button>
-                <button class="bar-btn" id="analyze-btn-bar" onclick="app.analyzeProduct()" aria-label="Analyze" disabled>✓</button>
+                <button type="button" class="bar-btn bar-btn-gallery" onclick="app.openGallery()" aria-label="Gallery">
+                    <span class="bar-btn-icon">
+                        <svg class="icon-gallery" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                            <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                        </svg>
+                        <span class="badge" id="photo-count-badge" style="display:none;">0</span>
+                    </span>
+                    <span class="bar-btn-label">Gallery</span>
+                </button>
+                <button type="button" class="bar-btn capture" id="capture-btn-main" onclick="app.capturePhoto()" oncontextmenu="return false;" aria-label="Capture photo (hold for video in future)">
+                    <span class="bar-btn-icon">
+                        <svg class="icon-capture" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
+                        </svg>
+                    </span>
+                    <span class="bar-btn-label">Capture</span>
+                </button>
+                <button type="button" class="bar-btn" id="analyze-btn-bar" onclick="app.analyzeProduct()" aria-label="Analyze" disabled>
+                    <span class="bar-btn-icon">✓</span>
+                    <span class="bar-btn-label">Analyze</span>
+                </button>
             </div>
             
             <!-- v1.2.2: Mini Recent Scans -->
@@ -1552,7 +1671,7 @@
 
         </div>
         
-        <!-- v1.2.2: Crop Modal -->
+        <!-- v1.2.2: Crop Modal (Cropper.js - iPhone-style crop frame + move/zoom) -->
         <div class="crop-modal" id="crop-modal">
             <div class="crop-header">
                 <button onclick="app.cancelCrop()">Cancel</button>
@@ -1560,11 +1679,61 @@
                 <button class="crop-done" onclick="app.applyCrop()">Done</button>
             </div>
             <div class="crop-container" id="crop-container">
-                <img id="crop-image" class="crop-image" src="" alt="Image to crop">
-                <div class="crop-overlay" id="crop-overlay"></div>
+                <img id="crop-image" src="" alt="Image to crop">
             </div>
             <div class="crop-instructions">
-                Pinch to zoom • Drag to position • Focus on ingredient list
+                Adjust crop area • Zoom or move the photo • Tap Done when ready
+            </div>
+        </div>
+
+        <!-- Crop preview: show cropped image + Close before returning to scanner -->
+        <div class="crop-preview-overlay" id="crop-preview-overlay">
+            <div class="crop-preview-card">
+                <p class="crop-preview-title">Cropped image</p>
+                <img id="crop-preview-image" src="" alt="Cropped result" class="crop-preview-img">
+                <button type="button" class="btn btn-primary crop-preview-close" onclick="app.closeCropPreview()">Close</button>
+            </div>
+        </div>
+
+        <!-- Analysis View -->
+        <!-- v1.3: Empty state (0 results) -->
+        <div id="view-empty-state" class="view">
+            <div class="analysis-container">
+                <div style="text-align: center; padding: 40px 24px;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">📦</div>
+                    <h2 style="font-size: 22px; font-weight: 700; color: #1A2E35; margin-bottom: 12px;">Product not found.</h2>
+                    <p style="color: #64748B; margin-bottom: 28px;">We couldn't find this product in our database.</p>
+                    <button type="button" class="btn btn-primary" onclick="app.showToast('Coming soon', 'info')" style="width: 100%; margin-bottom: 12px;">Add Missing Product</button>
+                    <button type="button" class="btn btn-secondary" onclick="app.showToast('Coming soon', 'info')" style="width: 100%; margin-bottom: 24px;">Report Missing</button>
+                    <button type="button" class="btn btn-secondary" onclick="app.showView('scanner')" style="width: 100%;">← Back to Scanner</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- v1.3: Confirmation popup (1 result – 1.5s then analysis) -->
+        <div id="view-confirmation-popup" class="view">
+            <div class="analysis-container">
+                <div class="confirmation-card" style="text-align: center; padding: 48px 24px;">
+                    <div class="progress-ring-wrap" style="margin: 0 auto 24px;">
+                        <svg class="progress-ring" width="80" height="80" viewBox="0 0 80 80" aria-hidden="true">
+                            <circle class="progress-ring-bg" cx="40" cy="40" r="36" fill="none" stroke="#E5E7EB" stroke-width="6"/>
+                            <circle class="progress-ring-fill" cx="40" cy="40" r="36" fill="none" stroke="#16A34A" stroke-width="6" stroke-dasharray="226" stroke-dashoffset="226" stroke-linecap="round" transform="rotate(-90 40 40)"/>
+                        </svg>
+                    </div>
+                    <h2 style="font-size: 22px; font-weight: 700; color: #1A2E35; margin-bottom: 8px;">Found it!</h2>
+                    <p style="color: #64748B; margin-bottom: 0;">Analyzing ingredients...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- v1.3: Product list (2+ results – tap to open analysis) -->
+        <div id="view-product-list" class="view">
+            <div class="analysis-container">
+                <h2 style="font-size: 20px; font-weight: 700; color: #1A2E35; margin-bottom: 16px;">Select Product</h2>
+                <div id="product-results-container" style="display: flex; flex-direction: column; gap: 12px;">
+                    <!-- Cards rendered by JS when 2+ results -->
+                </div>
+                <button type="button" class="btn btn-secondary" onclick="app.showView('scanner')" style="width: 100%; margin-top: 20px;">← Back to Scanner</button>
             </div>
         </div>
 
@@ -1736,7 +1905,7 @@
                 </div>
                 
                 <div style="text-align: center; margin-top: 32px;">
-                    <button class="btn btn-secondary" onclick="app.showView('home')">← Back to Home</button>
+                    <button class="btn btn-secondary" onclick="app.showView('scanner')">← Back</button>
                 </div>
             </div>
         </div>
@@ -1765,19 +1934,19 @@
             </div>
         </footer>
 
-        <!-- Bottom Navigation -->
-        <nav class="bottom-nav" role="navigation" aria-label="Main navigation">
-            <button class="nav-item" onclick="app.showView('home')" aria-label="Home">
-                <span class="nav-icon" aria-hidden="true">🏠</span>
-                <span>Home</span>
-            </button>
+        <!-- Bottom Navigation (hidden on onboarding): Scan + Preferences only. v1.3: inline SVG icons -->
+        <nav id="bottom-nav" class="bottom-nav" role="navigation" aria-label="Main navigation">
             <button class="nav-item" onclick="app.showView('scanner')" aria-label="Scan product">
-                <span class="nav-icon" aria-hidden="true">📸</span>
+                <span class="nav-icon" aria-hidden="true">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                </span>
                 <span>Scan</span>
             </button>
-            <button class="nav-item" onclick="app.showView('settings')" aria-label="Settings">
-                <span class="nav-icon" aria-hidden="true">⚙️</span>
-                <span>Settings</span>
+            <button class="nav-item" onclick="app.showView('settings')" aria-label="Preferences">
+                <span class="nav-icon" aria-hidden="true">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                </span>
+                <span>Preferences</span>
             </button>
         </nav>
 
@@ -1798,17 +1967,17 @@
 
     <script>
         // ═══════════════════════════════════════════════════════════════════════
-        // BUG #2 & #4: Error Codes System for actionable error messages
+        // Error Codes System: actionable error messages (UX #2: analysis-type errors show no CTAs on card)
         // ═══════════════════════════════════════════════════════════════════════
         const ERROR_CODES = {
             CAMERA_DENIED: {
                 code: 'ERR_001',
                 title: '📷 Camera Access Needed',
                 message: 'Eitaki needs camera access to scan products. Camera permission was previously denied.',
-                // Additional Fix #4: Instructions will be set dynamically in showError() based on device
-                actions: [], // Populated dynamically by showError() using getCameraPermissionInstructions()
+                // Additional Fix #4: Instructions set dynamically in showError() via getCameraPermissionInstructions()
+                actions: [],
                 fallback: 'Or upload a photo from your gallery instead',
-                showSettingsButton: true // Additional Fix #4: Show settings redirect button
+                showSettingsButton: true
             },
             CAMERA_UNAVAILABLE: {
                 code: 'ERR_002',
@@ -1821,6 +1990,7 @@
                 ],
                 fallback: 'You can upload a photo from gallery'
             },
+            // No fallback/CTA on card — user uses scanner bar (Gallery, Capture, Analyze)
             ANALYSIS_FAILED: {
                 code: 'ERR_005',
                 title: '🔬 Analysis Failed',
@@ -1829,8 +1999,7 @@
                     'Check your internet connection',
                     'Try taking a clearer photo',
                     'Make sure the ingredient list is visible'
-                ],
-                fallback: 'Try uploading from gallery'
+                ]
             },
             BARCODE_NOT_FOUND: {
                 code: 'ERR_003',
@@ -1839,9 +2008,7 @@
                 actions: [
                     'Try scanning the ingredient list instead',
                     'Help by adding this product later'
-                ],
-                fallback: 'switchToIngredients',  // v1.2.0: Auto-switch action
-                fallbackText: '📋 Scan Ingredients Instead'
+                ]
             },
             OCR_NOT_LOADED: {
                 code: 'ERR_OCR_INIT',
@@ -1851,8 +2018,7 @@
                     'Wait 10 seconds for scanner to initialize',
                     'Refresh the page if problem persists',
                     'Check your internet connection (scanner needs to download first time)'
-                ],
-                fallback: 'If this keeps happening, please contact support with error code ERR_OCR_INIT'
+                ]
             },
             NETWORK_ERROR: {
                 code: 'ERR_NETWORK',
@@ -1862,8 +2028,7 @@
                     'Verify you\'re connected to WiFi or mobile data',
                     'Try switching networks',
                     'Restart your browser'
-                ],
-                fallback: 'Try again when your connection is stable'
+                ]
             }
         };
 
@@ -1881,9 +2046,9 @@
             lastAnalysisConfidence: 100,  // BUG #5: Track confidence for display
             // v1.2.2: Crop state
             cropImageData: null,
-            cropScale: 1,
-            cropX: 0,
-            cropY: 0,
+            cropperInstance: null,
+            pendingCroppedImage: null,
+            pendingCropEditIndex: null,
             miniHistoryVisible: true,
             debugMode: true, // DEBUG MODE: Always enabled for troubleshooting
             // Fix #1: Operation guards to prevent concurrent async operations
@@ -1898,6 +2063,11 @@
             // Additional fixes: Request cancellation
             currentAbortController: null, // For API request cancellation
             ocrCancelled: false, // For OCR cancellation
+            // v1.3: Three-gate flow – pending analysis for confirmation popup
+            pendingAnalysisData: null,
+            pendingAnalysisCallback: null,
+            confirmationTimer: null,
+            productListResults: [], // 2+ results for product-list view
 
             // ═══════════════════════════════════════════════════════════════
             // ANALYTICS MODULE - Phase 1 Anonymous Tracking
@@ -2148,15 +2318,15 @@
                 // Check if onboarding already completed
                 const onboardingComplete = localStorage.getItem('onboarding_complete');
                 if (onboardingComplete === 'true') {
-                    this.completeOnboarding();
-                    
-                    // Track returning user who completed onboarding
+                    this.showView('scanner');
                     if (!profile.onboarding_completed) {
                         this.updateUserProfile({ onboarding_completed: true });
                     }
                 } else {
                     // Track onboarding start for new users
                     this.trackEvent(this.ANALYTICS_EVENTS.ONBOARDING_START);
+                    // Hide bottom nav on onboarding screen
+                    document.getElementById('bottom-nav')?.style.setProperty('display', 'none');
                 }
                 
                 this.scanCount = parseInt(localStorage.getItem('scan_count') || '0');
@@ -2178,6 +2348,10 @@
                     const insights = this.getInsights();
                     console.log('User insights:', insights);
                 }
+                
+                // Release camera when user leaves the app (avoids holding permission across tabs)
+                window.addEventListener('pagehide', () => this.stopCamera());
+                window.addEventListener('beforeunload', () => this.stopCamera());
             },
 
             setupEventListeners() {
@@ -2443,12 +2617,9 @@
 
             completeOnboarding() {
                 this.safeLocalStorageSet('onboarding_complete', 'true');
-                
-                // Track onboarding completion (NEW - Auth Strategy v1.1)
                 this.trackEvent(this.ANALYTICS_EVENTS.ONBOARDING_COMPLETE);
                 this.updateUserProfile({ onboarding_completed: true });
-                
-                this.showView('home');
+                // View is chosen by caller: CTA → scanner; init (returning user) → scanner
             },
 
             // View Management
@@ -2487,22 +2658,62 @@
                     navItem.classList.add('active');
                 }
                 
+                // Hide bottom nav on onboarding and confirmation-popup; show on all other views
+                const bottomNav = document.getElementById('bottom-nav');
+                if (bottomNav) {
+                    const hideNav = viewName === 'onboarding' || viewName === 'confirmation-popup';
+                    bottomNav.style.display = hideNav ? 'none' : 'flex';
+                }
+                // v1.3: When leaving confirmation-popup, clear the transition timer
+                if (this.currentView === 'confirmation-popup' && viewName !== 'confirmation-popup' && this.confirmationTimer) {
+                    clearTimeout(this.confirmationTimer);
+                    this.confirmationTimer = null;
+                }
+                // v1.3: When entering confirmation-popup, reset progress ring so it animates again, then start 1500ms timer
+                if (viewName === 'confirmation-popup') {
+                    const ringFill = document.querySelector('#view-confirmation-popup .progress-ring-fill');
+                    if (ringFill) {
+                        ringFill.style.strokeDashoffset = '226';
+                        void ringFill.offsetHeight; // force reflow
+                        ringFill.style.strokeDashoffset = '';
+                    }
+                    if (this.pendingAnalysisData) {
+                        if (this.confirmationTimer) clearTimeout(this.confirmationTimer);
+                        this.confirmationTimer = setTimeout(() => this.runConfirmationTransition(), 1500);
+                    }
+                }
+                
                 this.currentView = viewName;
                 
                 // Scanner view specific logic (v1.2.0)
                 if (viewName === 'scanner') {
-                    document.getElementById('mode-badge')?.classList.add('visible');
+                    // UX #2: Dismiss error card when (re-)entering scanner (e.g. user taps Scanner tab)
+                    this.hideError();
+                    // Bug 4 / DEC-011: Mode dropdown hidden until full "unified scan" (auto-detect) is built; app uses ingredients mode only for now
+                    // document.getElementById('mode-badge')?.classList.add('visible');
                     document.getElementById('scanner-bottom-bar')?.classList.add('visible');
                     this.updateModeUI();
                     this.photoAttempts = 0;
                     this.capturedImages = []; // Reset captured images
                     this.updateCapturedImagesState(); // Fix #4: Use centralized state update
-                    // v1.2.0: Auto-start camera (removed Start Camera button)
-                    // Fix #3: Store timer ID so we can cancel it if user navigates away quickly
-                    this.cameraStartTimer = setTimeout(() => {
-                        this.cameraStartTimer = null; // Clear reference after execution
-                        this.startCamera();
-                    }, 300);
+                    // Reuse existing camera stream if still live (avoids permission popup on every return)
+                    const streamStillLive = this.stream && this.stream.getTracks().length > 0 &&
+                        this.stream.getTracks().every(t => t.readyState === 'live');
+                    if (streamStillLive) {
+                        const video = document.getElementById('camera-video');
+                        const placeholder = document.getElementById('camera-placeholder');
+                        const overlay = document.getElementById('camera-overlay');
+                        if (video) { video.srcObject = this.stream; video.style.display = 'block'; }
+                        if (placeholder) placeholder.style.display = 'none';
+                        if (overlay) overlay.style.display = 'flex';
+                        this.cameraActive = true;
+                    } else {
+                        // Fix #3: Store timer ID so we can cancel it if user navigates away quickly
+                        this.cameraStartTimer = setTimeout(() => {
+                            this.cameraStartTimer = null;
+                            this.startCamera();
+                        }, 300);
+                    }
                     // v1.2.2: Show mini history on scanner page
                     this.updateMiniHistory();
                 } else {
@@ -2510,13 +2721,17 @@
                     document.getElementById('mode-menu')?.classList.remove('visible');
                     document.getElementById('scanner-bottom-bar')?.classList.remove('visible');
                     document.getElementById('scanner-mini-history')?.classList.remove('visible');
-                    // Stop camera when leaving scanner
-                    this.stopCamera();
+                    // Do NOT stop camera when leaving scanner — reuse stream on return to avoid permission popup
+                    // stopCamera() is called on page unload (see init)
                 }
                 
                 // Load settings when viewing settings page
                 if (viewName === 'settings') {
                     this.loadSettings();
+                }
+                // v1.3: Render product list when entering product-list view
+                if (viewName === 'product-list') {
+                    this.renderProductList();
                 }
                 
                 // Track view change event (NEW - Auth Strategy v1.1)
@@ -2524,6 +2739,51 @@
                     from: this.currentView,
                     to: viewName
                 });
+            },
+
+            // v1.3: After 1500ms on confirmation-popup, show analysis and clear pending state
+            runConfirmationTransition() {
+                if (this.confirmationTimer) {
+                    clearTimeout(this.confirmationTimer);
+                    this.confirmationTimer = null;
+                }
+                if (!this.pendingAnalysisData) return;
+                const data = this.pendingAnalysisData;
+                const callback = this.pendingAnalysisCallback;
+                this.pendingAnalysisData = null;
+                this.pendingAnalysisCallback = null;
+                this.showAnalysis(data);
+                this.addToRecentScans(data);
+                if (callback && typeof callback === 'function') callback();
+                this.showView('analysis');
+            },
+
+            // v1.3: Product list (2+ results) – render cards; tap → showAnalysis(item)
+            renderProductList() {
+                const container = document.getElementById('product-results-container');
+                if (!container) return;
+                if (!this.productListResults || this.productListResults.length === 0) {
+                    container.innerHTML = '<p style="color: #64748B; font-size: 14px;">No products to show. Scan a barcode to see matches here.</p>';
+                    return;
+                }
+                container.innerHTML = this.productListResults.map((item, idx) => `
+                    <button type="button" class="product-list-card" onclick="app.showAnalysisFromProductList(${idx})" style="display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; cursor: pointer; text-align: left;">
+                        <img src="${item.image || 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 48 48\'%3E%3Crect fill=\'%23E2E8F0\' width=\'48\' height=\'48\' rx=\'8\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'%2394A3B8\' font-size=\'10\'%3E?%3C/text%3E%3C/svg%3E'}" alt="" style="width: 48px; height: 48px; object-fit: cover; border-radius: 8px; flex-shrink: 0;">
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="font-weight: 600; color: #1A2E35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${(item.productName || item.name || 'Product').substring(0, 40)}</div>
+                            <div style="font-size: 12px; color: #64748B;">${(item.brand || '—').substring(0, 30)}</div>
+                        </div>
+                        <span style="color: #94A3B8;">›</span>
+                    </button>
+                `).join('');
+            },
+
+            showAnalysisFromProductList(index) {
+                const item = this.productListResults[index];
+                if (item) {
+                    this.showAnalysis(item);
+                    this.showView('analysis');
+                }
             },
 
             // v1.2.1: setScanMode() removed - using selectMode() only
@@ -2581,12 +2841,10 @@
                         this.startBarcodeDetection();
                     }
                     
-                    // Update scan guide based on mode
+                    // Update scan guide (unified: one message; mode dropdown hidden)
                     const guideText = document.getElementById('scan-guide-text');
                     if (guideText) {
-                        guideText.textContent = this.scanMode === 'barcode' 
-                            ? '📊 Point at barcode for instant lookup'
-                            : '📋 Point at ingredient list';
+                        guideText.textContent = 'Point at ingredients or barcode';
                     }
                 } catch (err) {
                     // Fix #5: Ensure cameraActive is explicitly false on error
@@ -2695,24 +2953,29 @@
                     `;
                 }
                 
-                // Determine fallback button based on error type
-                let fallbackButton = '';
-                if (errorWithActions.fallback === 'switchToIngredients') {
-                    // v1.2.0: Auto-switch to ingredients mode
-                    fallbackButton = `
-                        <button class="btn btn-secondary" onclick="app.switchToIngredientsMode()" style="margin-bottom: 12px; width: 100%;">
-                            ${errorWithActions.fallbackText || '📋 Scan Ingredients Instead'}
-                        </button>
-                    `;
-                } else if (errorWithActions.fallback) {
-                    fallbackButton = `
+                // UX #2: Analysis-type errors (AI/analysis failed, OCR, network, barcode not found) show NO
+                // fallback text, NO "Upload from Gallery", NO "Try Again" — user uses scanner bar instead.
+                const ANALYSIS_TYPE_ERRORS = ['ANALYSIS_FAILED', 'OCR_NOT_LOADED', 'NETWORK_ERROR', 'BARCODE_NOT_FOUND'];
+                const isAnalysisTypeError = ANALYSIS_TYPE_ERRORS.includes(String(errorType));
+                let fallbackBlock = '';
+                let tryAgainBlock = '';
+                if (isAnalysisTypeError) {
+                    fallbackBlock = '';
+                    tryAgainBlock = '';
+                } else {
+                    if (errorWithActions.fallback) {
+                        fallbackBlock = `
                         <p style="font-size: 14px; color: #64748B; margin-bottom: 16px;">
                             ${errorWithActions.fallback}
                         </p>
                         <button class="btn btn-secondary" onclick="app.useGalleryFallback()" style="margin-bottom: 12px; width: 100%;">
                             📁 Upload from Gallery
-                        </button>
-                    `;
+                        </button>`;
+                    }
+                    tryAgainBlock = `
+                        <button class="btn btn-primary" onclick="app.retryCamera()" style="width: 100%;">
+                            🔄 Try Again
+                        </button>`;
                 }
                 
                 const html = `
@@ -2734,7 +2997,7 @@
                         
                         ${debugSection}
                         
-                        ${fallbackButton}
+                        ${fallbackBlock}
                         
                         ${errorType === 'CAMERA_DENIED' ? `
                         <button class="btn btn-primary" onclick="app.openDeviceSettings()" style="width: 100%; margin-bottom: 12px; background: #16A34A;">
@@ -2742,9 +3005,7 @@
                         </button>
                         ` : ''}
                         
-                        <button class="btn btn-primary" onclick="app.retryCamera()" style="width: 100%;">
-                            🔄 Try Again
-                        </button>
+                        ${tryAgainBlock}
                         
                         <p style="font-size: 12px; color: #94A3B8; margin-top: 16px;">
                             Error Code: ${errorWithActions.code}
@@ -2755,18 +3016,6 @@
                 const resultContainer = document.getElementById('scanner-result');
                 resultContainer.innerHTML = html;
                 resultContainer.style.display = 'block';
-            },
-
-            // v1.2.0: Switch to ingredients mode (called from barcode not found error)
-            switchToIngredientsMode() {
-                this.hideError();
-                this.selectMode('ingredients');
-                this.showToast('Switched to Ingredients mode. Point at ingredient list.', 'success');
-                // Camera is already running, just update the guide
-                const guideText = document.getElementById('scan-guide-text');
-                if (guideText) {
-                    guideText.textContent = '📋 Point at ingredient list - any language';
-                }
             },
 
             hideError() {
@@ -2796,7 +3045,7 @@
                 }
             },
 
-            // BUG #2: Gallery fallback handler
+            // "Upload from Gallery" from error card (camera errors only; analysis errors use bar)
             useGalleryFallback() {
                 this.hideError();
                 document.getElementById('file-input-fallback').click();
@@ -2861,113 +3110,102 @@
                 reader.readAsDataURL(file);
             },
             
-            // v1.2.2: Crop Modal Functions
+            // v1.2.2: Crop Modal (Cropper.js - iPhone-style crop frame + move/zoom)
             openCropModal(imageData) {
                 this.cropImageData = imageData;
-                this.cropScale = 1;
-                this.cropX = 0;
-                this.cropY = 0;
-                
                 const modal = document.getElementById('crop-modal');
                 const img = document.getElementById('crop-image');
-                
+                if (this.cropperInstance) {
+                    this.cropperInstance.destroy();
+                    this.cropperInstance = null;
+                }
                 img.src = imageData;
+                img.style.transform = '';
                 modal.classList.add('active');
-                
-                // Setup touch handlers for pinch-zoom and drag
-                this.setupCropHandlers();
-            },
-            
-            setupCropHandlers() {
-                const container = document.getElementById('crop-container');
-                const img = document.getElementById('crop-image');
-                
-                let startDistance = 0;
-                let startScale = 1;
-                let startX = 0;
-                let startY = 0;
-                let isDragging = false;
-                
-                // Touch start
-                container.ontouchstart = (e) => {
-                    if (e.touches.length === 2) {
-                        // Pinch start
-                        startDistance = Math.hypot(
-                            e.touches[0].pageX - e.touches[1].pageX,
-                            e.touches[0].pageY - e.touches[1].pageY
-                        );
-                        startScale = this.cropScale;
-                    } else if (e.touches.length === 1) {
-                        // Drag start
-                        isDragging = true;
-                        startX = e.touches[0].pageX - this.cropX;
-                        startY = e.touches[0].pageY - this.cropY;
+                img.onload = () => {
+                    if (this.cropperInstance) return;
+                    if (typeof Cropper === 'undefined') {
+                        this.showToast('Crop library loading... Please try again.', 'warning');
+                        return;
                     }
+                    this.cropperInstance = new Cropper(img, {
+                        viewMode: 1,
+                        dragMode: 'move',
+                        aspectRatio: NaN,
+                        autoCropArea: 0.8,
+                        restore: false,
+                        responsive: true,
+                        checkOrientation: true,
+                        guides: true,
+                        center: true,
+                        highlight: false,
+                        cropBoxMovable: true,
+                        cropBoxResizable: true,
+                        toggleDragModeOnDblclick: false
+                    });
                 };
-                
-                // Touch move
-                container.ontouchmove = (e) => {
-                    e.preventDefault();
-                    if (e.touches.length === 2) {
-                        // Pinch zoom
-                        const distance = Math.hypot(
-                            e.touches[0].pageX - e.touches[1].pageX,
-                            e.touches[0].pageY - e.touches[1].pageY
-                        );
-                        this.cropScale = Math.max(0.5, Math.min(3, startScale * (distance / startDistance)));
-                        this.updateCropTransform();
-                    } else if (e.touches.length === 1 && isDragging) {
-                        // Drag
-                        this.cropX = e.touches[0].pageX - startX;
-                        this.cropY = e.touches[0].pageY - startY;
-                        this.updateCropTransform();
-                    }
-                };
-                
-                // Touch end
-                container.ontouchend = () => {
-                    isDragging = false;
-                };
-                
-                // Mouse support for desktop
-                let isMouseDown = false;
-                container.onmousedown = (e) => {
-                    isMouseDown = true;
-                    startX = e.pageX - this.cropX;
-                    startY = e.pageY - this.cropY;
-                };
-                container.onmousemove = (e) => {
-                    if (isMouseDown) {
-                        this.cropX = e.pageX - startX;
-                        this.cropY = e.pageY - startY;
-                        this.updateCropTransform();
-                    }
-                };
-                container.onmouseup = () => { isMouseDown = false; };
-                container.onmouseleave = () => { isMouseDown = false; };
-                
-                // Mouse wheel for zoom
-                container.onwheel = (e) => {
-                    e.preventDefault();
-                    const delta = e.deltaY > 0 ? 0.9 : 1.1;
-                    this.cropScale = Math.max(0.5, Math.min(3, this.cropScale * delta));
-                    this.updateCropTransform();
-                };
-            },
-            
-            updateCropTransform() {
-                const img = document.getElementById('crop-image');
-                img.style.transform = `translate(${this.cropX}px, ${this.cropY}px) scale(${this.cropScale})`;
             },
             
             cancelCrop() {
+                if (this.cropperInstance) {
+                    this.cropperInstance.destroy();
+                    this.cropperInstance = null;
+                }
                 document.getElementById('crop-modal').classList.remove('active');
                 this.cropImageData = null;
             },
             
             applyCrop() {
-                // Delegate to the unified function
-                this.applyCropForEdit();
+                if (!this.cropperInstance) return;
+                try {
+                    const canvas = this.cropperInstance.getCroppedCanvas({ maxWidth: 2048, maxHeight: 2048, imageSmoothingQuality: 'high' });
+                    if (!canvas) {
+                        this.showToast('Could not crop image. Please try again.', 'error');
+                        return;
+                    }
+                    const croppedData = canvas.toDataURL('image/jpeg', 0.9);
+                    this.pendingCroppedImage = croppedData;
+                    this.pendingCropEditIndex = this.cropEditIndex;
+                    this.cropperInstance.destroy();
+                    this.cropperInstance = null;
+                    this.cropEditIndex = undefined;
+                    document.getElementById('crop-modal').classList.remove('active');
+                    this.cropImageData = null;
+                    const previewOverlay = document.getElementById('crop-preview-overlay');
+                    const previewImg = document.getElementById('crop-preview-image');
+                    if (previewOverlay && previewImg) {
+                        previewImg.src = croppedData;
+                        previewOverlay.classList.add('active');
+                    } else {
+                        this.applyPendingCrop();
+                    }
+                } catch (e) {
+                    console.error('Crop error:', e);
+                    this.showToast('Crop failed. Please try again.', 'error');
+                }
+            },
+            
+            closeCropPreview() {
+                this.applyPendingCrop();
+                const previewOverlay = document.getElementById('crop-preview-overlay');
+                const previewImg = document.getElementById('crop-preview-image');
+                if (previewOverlay) previewOverlay.classList.remove('active');
+                if (previewImg) previewImg.src = '';
+                this.pendingCroppedImage = null;
+                this.pendingCropEditIndex = null;
+            },
+            
+            applyPendingCrop() {
+                if (!this.pendingCroppedImage) return;
+                if (this.pendingCropEditIndex !== undefined && this.pendingCropEditIndex >= 0) {
+                    this.capturedImages[this.pendingCropEditIndex] = this.pendingCroppedImage;
+                    this.updateCapturedImagesState();
+                    this.showToast('Photo cropped!', 'success');
+                } else {
+                    this.capturedImages.push(this.pendingCroppedImage);
+                    this.updateCapturedImagesState();
+                    this.showToast('Photo cropped & added!', 'success');
+                }
             },
             
             // v1.2.2: Mini History Functions
@@ -3030,54 +3268,6 @@
                 }
             },
             
-            // Modified applyCrop to handle editing existing images
-            applyCropForEdit() {
-                // Same as applyCrop but replaces instead of adds
-                const img = document.getElementById('crop-image');
-                const container = document.getElementById('crop-container');
-                
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                
-                const containerRect = container.getBoundingClientRect();
-                canvas.width = containerRect.width;
-                canvas.height = containerRect.height;
-                
-                const tempImg = new Image();
-                tempImg.onload = () => {
-                    const imgRect = img.getBoundingClientRect();
-                    
-                    const sx = (containerRect.left - imgRect.left) / this.cropScale;
-                    const sy = (containerRect.top - imgRect.top) / this.cropScale;
-                    const sw = containerRect.width / this.cropScale;
-                    const sh = containerRect.height / this.cropScale;
-                    
-                    ctx.drawImage(tempImg, 
-                        Math.max(0, sx), Math.max(0, sy), 
-                        Math.min(tempImg.width, sw), Math.min(tempImg.height, sh),
-                        0, 0, canvas.width, canvas.height
-                    );
-                    
-                    const croppedData = canvas.toDataURL('image/jpeg', 0.9);
-                    
-                    // Replace the existing image
-                    if (this.cropEditIndex !== undefined && this.cropEditIndex >= 0) {
-                        this.capturedImages[this.cropEditIndex] = croppedData;
-                        this.updateCapturedImagesState(); // Fix #4: Use centralized state update
-                        this.showToast('Photo cropped! ✂️', 'success');
-                        this.cropEditIndex = undefined;
-                    } else {
-                        // Add as new
-                        this.capturedImages.push(croppedData);
-                        this.updateCapturedImagesState(); // Fix #4: Use centralized state update
-                        this.showToast(`Photo ${this.capturedImages.length} cropped & added! ✂️`, 'success');
-                    }
-                    
-                    this.cancelCrop();
-                };
-                tempImg.src = this.cropImageData;
-            },
-
             stopCamera() {
                 const video = document.getElementById('camera-video');
                 const placeholder = document.getElementById('camera-placeholder');
@@ -3197,12 +3387,14 @@
                         if (offData && offData.found) {
                             this.hideLoading();
                             const analysis = this.convertOFFToAnalysis(offData);
-                            this.showAnalysis(analysis);
-                            this.addToRecentScans(analysis);
+                            // v1.3: Three-gate flow – 1 result → confirmation popup then analysis
+                            this.pendingAnalysisData = analysis;
+                            this.pendingAnalysisCallback = null;
+                            this.showView('confirmation-popup');
                         } else {
                             this.hideLoading();
-                            // BUG #4: Better error message for product not found
-                            this.showError('BARCODE_NOT_FOUND');
+                            // v1.3: 0 results → empty-state view
+                            this.showView('empty-state');
                         }
                     } catch (error) {
                         // Additional Fix #1: Handle cancellation silently
@@ -3333,8 +3525,11 @@
                 // Additional Fix #2: Reset OCR cancellation flag
                 this.ocrCancelled = false;
 
+                let failurePhase = 'start';
+                let extractedText = '';
+
                 try {
-                    let extractedText = '';
+                    failurePhase = 'ocr';
                     for (let i = 0; i < this.capturedImages.length; i++) {
                         // Additional Fix #2: Check if OCR was cancelled (user navigated away)
                         if (this.ocrCancelled || this.currentView !== 'scanner') {
@@ -3351,6 +3546,7 @@
                         extractedText += result.data.text + '\n\n';
                     }
                     
+                    failurePhase = 'after_ocr';
                     // Additional Fix #2: Check again after OCR loop
                     if (this.ocrCancelled || this.currentView !== 'scanner') {
                         console.log('OCR cancelled after processing - user navigated away');
@@ -3372,6 +3568,7 @@
                         return;
                     }
 
+                    failurePhase = 'gemini_api';
                     this.updateLoadingMessage('Analyzing with AI...');
                     
                     // Additional Fix #1: Create AbortController for API request cancellation
@@ -3382,17 +3579,16 @@
                     this.currentAbortController = null;
                     
                     this.hideLoading();
-                    this.showAnalysis(analysis);
-                    this.addToRecentScans(analysis);
-                    this.incrementScanCount();
-                    
-                    // Reset
-                    this.capturedImages = [];
-                    this.updateCapturedImagesState(); // Fix #4: Use centralized state update
-                    this.stopCamera();
-                    
-                    // Fix #1: Reset flag after successful analysis
+                    // v1.3: Three-gate flow – 1 result → confirmation popup then analysis
+                    this.pendingAnalysisData = analysis;
+                    this.pendingAnalysisCallback = () => {
+                        this.incrementScanCount();
+                        this.capturedImages = [];
+                        this.updateCapturedImagesState();
+                        this.stopCamera();
+                    };
                     this.isAnalyzing = false;
+                    this.showView('confirmation-popup');
 
                 } catch (error) {
                     // Additional Fix #1: Don't show error if request was cancelled (user navigated away)
@@ -3427,23 +3623,34 @@
                     // Fix #6: Preserve capturedImages array on error (don't clear) so user can retry
                     // Fix #6: Don't stop camera on error - allow user to retry with same camera session
                     
-                    // Build debug info for troubleshooting
+                    // Enriched debug info for every AI analysis failure (testing / troubleshooting)
+                    const extractedPreview = extractedText && extractedText.length > 0
+                        ? extractedText.trim().substring(0, 400).replace(/\s+/g, ' ') + (extractedText.length > 400 ? '…' : '')
+                        : '(none)';
+                    const firstImageLen = this.capturedImages.length > 0 && typeof this.capturedImages[0] === 'string'
+                        ? this.capturedImages[0].length
+                        : 0;
                     const debugInfo = {
-                        errorMessage: error.message,
-                        errorStack: error.stack ? error.stack.substring(0, 500) : 'No stack trace',
+                        failurePhase,
+                        errorName: error.name || '(unknown)',
+                        errorMessage: error.message || '(no message)',
+                        errorStack: error.stack ? error.stack.substring(0, 800) : 'No stack trace',
                         timestamp: new Date().toISOString(),
                         userAgent: navigator.userAgent,
                         capturedImagesCount: this.capturedImages.length,
-                        scanMode: this.scanMode
+                        firstImageDataLength: firstImageLen,
+                        scanMode: this.scanMode,
+                        extractedTextLength: extractedText ? extractedText.length : 0,
+                        extractedTextPreview: extractedPreview
                     };
                     
-                    // BUG-006 FIX: Better error detection with debug info
+                    // BUG-006 FIX: Better error detection; always show enriched debug for analysis failures (testing)
                     if (error.message && error.message.includes('Tesseract')) {
-                        this.showError('OCR_NOT_LOADED', this.debugMode ? debugInfo : null);
+                        this.showError('OCR_NOT_LOADED', debugInfo);
                     } else if (error.message && (error.message.includes('network') || error.message.includes('fetch'))) {
-                        this.showError('NETWORK_ERROR', this.debugMode ? debugInfo : null);
+                        this.showError('NETWORK_ERROR', debugInfo);
                     } else {
-                        this.showError('ANALYSIS_FAILED', this.debugMode ? debugInfo : null);
+                        this.showError('ANALYSIS_FAILED', debugInfo);
                     }
                     
                     console.error('Analysis error:', error);
@@ -3540,8 +3747,6 @@
 
             // v1.2.0: Improved Gemini prompt with compound ingredient handling
             async analyzeWithGemini(extractedText, mode, signal = null) {
-                const GEMINI_API_KEY = 'AIzaSyBRU_8O1QXJaYnx1liyf7j3lhQwpj1fuEU';
-                
                 const basePrompt = mode === 'ingredients' 
                     ? `You are analyzing a food product ingredient list for consumer health education.
 
@@ -3667,25 +3872,12 @@ Respond ONLY with valid JSON:
 }`;
 
                 try {
-                    if (GEMINI_API_KEY === 'YOUR_GEMINI_API_KEY_HERE') {
-                        throw new Error('API key not set');
-                    }
-                    
-                    const response = await fetch(
-                        `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-                        {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                contents: [{ parts: [{ text: basePrompt }] }],
-                                generationConfig: {
-                                    temperature: 0.7,
-                                    maxOutputTokens: 4096
-                                }
-                            }),
-                            signal: signal // Additional Fix #1: Pass abort signal
-                        }
-                    );
+                    const response = await fetch('/.netlify/functions/analyze-ingredient', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ prompt: basePrompt }),
+                        signal: signal
+                    });
                     
                     // Check for network/API errors
                     if (!response.ok) {
@@ -4067,99 +4259,187 @@ Respond ONLY with valid JSON:
                     </div>
                 ` : '';
 
+                // Bug 4 UI: 1–2 short plain-language insights for above-fold (no full list on this screen)
+                const shortInsights = [];
+                if (analysis.scoreReason && analysis.scoreReason.trim()) {
+                    shortInsights.push(analysis.scoreReason.trim().substring(0, 100) + (analysis.scoreReason.length > 100 ? '…' : ''));
+                }
+                const firstNegative = (analysis.ingredients || []).find(i => i.healthImpact === 'negative');
+                if (firstNegative && shortInsights.length < 2) {
+                    shortInsights.push('Contains ' + (firstNegative.name || 'ingredients of concern'));
+                }
+                const shortInsightsHTML = shortInsights.length > 0 ? `
+                    <ul style="margin: 12px 0 0 0; padding-left: 20px; font-size: 14px; color: #475569; line-height: 1.5;">
+                        ${shortInsights.slice(0, 2).map(s => `<li>${s}</li>`).join('')}
+                    </ul>
+                ` : '';
+
+                // v1.3: 2×2 Health Score grid (Sugar, Additives, Processing, Nutrients); null → skeleton
+                const healthCell = (label, value) => {
+                    const val = value != null && value !== '' ? value : null;
+                    const display = val !== null ? val : '—';
+                    const skeleton = val === null ? ' skeleton-cell' : '';
+                    return `<div class="health-grid-cell${skeleton}" style="background: var(--ice-blue); padding: 16px; border-radius: 12px; text-align: center;"><div style="font-size: 24px; font-weight: 700; color: #1A2E35;">${display}</div><div style="font-size: 12px; color: #64748B; margin-top: 4px;">${label}</div></div>`;
+                };
+                const healthGridHTML = `
+                    <div class="health-score-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px;">
+                        ${healthCell('Sugar', analysis.sugar)}
+                        ${healthCell('Additives', analysis.additives)}
+                        ${healthCell('Processing', analysis.processing)}
+                        ${healthCell('Nutrients', analysis.nutrients)}
+                    </div>
+                `;
+
+                // v1.3: Badge carousel (horizontal scroll, gradient on right); placeholder badges
+                const badgeList = (analysis.trustBadges && analysis.trustBadges.length > 0)
+                    ? analysis.trustBadges.map(b => b.text)
+                    : ['Quality Check', 'Ingredient Scanned', 'Educational'];
+                const badgeCarouselHTML = `
+                    <div class="badge-carousel-wrap" style="margin-top: 16px; position: relative;">
+                        <div class="badge-carousel" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;">
+                            ${badgeList.map(t => `<span class="badge-pill" style="flex-shrink: 0; padding: 8px 16px; border-radius: 20px; background: var(--ice-blue); font-size: 13px; font-weight: 600; color: #16A34A; scroll-snap-align: start;">${t}</span>`).join('')}
+                        </div>
+                        <div class="badge-carousel-fade" style="position: absolute; top: 0; right: 0; bottom: 8px; width: 32px; background: linear-gradient(to left, #F8F9FA, transparent); pointer-events: none;"></div>
+                    </div>
+                `;
+
+                // v1.3: Sources accordion (one open at a time); placeholder links
+                const sourcesAccordionHTML = `
+                    <div class="sources-accordion" style="margin-top: 20px;">
+                        <h3 style="font-size: 16px; font-weight: 700; color: #1A2E35; margin-bottom: 12px;">Sources &amp; Standards</h3>
+                        <div class="accordion-item">
+                            <button type="button" class="accordion-head" onclick="app.toggleAccordion(this)" style="width: 100%; text-align: left; padding: 14px 16px; background: #F1F5F9; border: none; border-radius: 8px; font-weight: 600; color: #1A2E35; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">USDA FoodData Central <span class="accordion-arrow">▼</span></button>
+                            <div class="accordion-content" style="display: none; padding: 12px 16px; background: #F8FAFC; border-radius: 0 0 8px 8px;"><a href="#" onclick="alert('Link coming soon.'); return false;" style="color: #16A34A;">View source</a></div>
+                        </div>
+                        <div class="accordion-item">
+                            <button type="button" class="accordion-head" onclick="app.toggleAccordion(this)" style="width: 100%; text-align: left; padding: 14px 16px; background: #F1F5F9; border: none; border-radius: 8px; font-weight: 600; color: #1A2E35; cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">Open Food Facts <span class="accordion-arrow">▼</span></button>
+                            <div class="accordion-content" style="display: none; padding: 12px 16px; background: #F8FAFC; border-radius: 0 0 8px 8px;"><a href="#" onclick="alert('Link coming soon.'); return false;" style="color: #16A34A;">View source</a></div>
+                        </div>
+                        <div class="accordion-item">
+                            <button type="button" class="accordion-head" onclick="app.toggleAccordion(this)" style="width: 100%; text-align: left; padding: 14px 16px; background: #F1F5F9; border: none; border-radius: 8px; font-weight: 600; color: #1A2E35; cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">FSSAI Standards <span class="accordion-arrow">▼</span></button>
+                            <div class="accordion-content" style="display: none; padding: 12px 16px; background: #F8FAFC; border-radius: 0 0 8px 8px;"><a href="#" onclick="alert('Link coming soon.'); return false;" style="color: #16A34A;">View source</a></div>
+                        </div>
+                    </div>
+                `;
+
+                // Defensive: ensure display values never undefined (history/edge cases)
+                const displayName = analysis.productName || analysis.name || 'Unknown Product';
+                const displayScore = analysis.healthScore != null && analysis.healthScore !== '' ? analysis.healthScore : '—';
+                const displayCategory = analysis.scoreCategory || 'fair';
+                const displayReason = analysis.scoreReason || '';
+
                 container.innerHTML = `
-                    <div class="product-header">
-                        ${analysis.image ? `<img src="${analysis.image}" alt="${analysis.productName}" style="width: 100%; max-height: 200px; object-fit: contain; margin-bottom: 16px; border-radius: 8px;">` : ''}
-                        <h1 class="product-name">${analysis.productName}</h1>
+                    <div class="product-header" style="margin-bottom: 20px;">
+                        <h2 class="product-name" style="font-size: 1.1rem; font-weight: 600; color: #1E293B; margin-bottom: 12px;">${displayName}</h2>
+                        <div class="health-score-card" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+                            <div class="score-circle ${scoreClass}" style="width: 120px; height: 120px; font-size: 32px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                                ${displayScore}
+                                <div class="score-label" style="font-size: 14px; margin-top: 4px;">${displayCategory}</div>
+                            </div>
+                            <p style="font-size: 13px; color: #64748B; margin-top: 12px;">Based on ingredient quality and additives</p>
+                            ${shortInsightsHTML}
+                            ${healthGridHTML}
+                            <button type="button" class="btn btn-secondary" onclick="app.toggleAnalysisDetails()" id="analysis-details-toggle" style="margin-top: 16px; font-size: 14px;">
+                                See details →
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="analysis-details-section" style="display: none;">
+                        ${analysis.image ? `<img src="${analysis.image}" alt="${displayName}" style="width: 100%; max-height: 200px; object-fit: contain; margin-bottom: 16px; border-radius: 8px;">` : ''}
                         ${analysis.brand ? `<p class="product-brand">${analysis.brand}</p>` : ''}
                         ${analysis.detectedLanguage ? `<p class="product-brand">Detected language: ${analysis.detectedLanguage}</p>` : ''}
-                        
                         ${confidenceDisclaimerHTML}
-                        
-                        <div class="health-score-card">
-                            <div class="score-main">
-                                <div class="score-circle ${scoreClass}">
-                                    ${analysis.healthScore}
-                                    <div class="score-label">${analysis.scoreCategory}</div>
-                                </div>
-                                <div class="score-details">
-                                    <div class="score-title">Health Score</div>
-                                    <p class="score-desc">${analysis.scoreReason}</p>
-                                </div>
-                            </div>
-                            ${confidenceBadgeHTML}
-                            ${trustBadgesHTML}
-                            ${scoreExplanationHTML}
+                        <div class="score-details" style="margin-top: 12px;">
+                            <p class="score-desc">${displayReason}</p>
                         </div>
-
+                        ${confidenceBadgeHTML}
+                        ${trustBadgesHTML}
+                        ${badgeCarouselHTML}
+                        ${scoreExplanationHTML}
                         ${allergiesHTML}
                         ${verdictHTML}
-                    </div>
-
-                    ${macrosHTML}
-
-                    <div class="analysis-section">
-                        <h2 class="section-title">🔬 Ingredients Deep Dive</h2>
-                        <div class="ingredient-list">
-                            ${(analysis.ingredients || []).map(ing => `
-                                <div class="ingredient-item">
-                                    <div class="ingredient-header">
-                                        <span class="ingredient-name">${ing.name}</span>
-                                        <span class="impact-badge impact-${ing.healthImpact}">
-                                            ${ing.healthImpact === 'positive' ? '✓ Good' : ing.healthImpact === 'negative' ? '⚠ Caution' : 'Neutral'}
-                                        </span>
-                                    </div>
-                                    ${ing.readabilityIssue ? `<div class="alert-box" style="margin: 8px 0; font-size: 12px; padding: 8px;">⚠️ ${ing.readabilityIssue}</div>` : ''}
-                                    <div class="ingredient-purpose"><strong>Purpose:</strong> ${ing.purpose}</div>
-                                    <div class="ingredient-detail">${ing.details}</div>
-                                    <div style="font-size: 12px; color: var(--light-slate); margin-top: 8px;">
-                                        <strong>Source:</strong> ${ing.source}
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-
-                    ${analysis.certifications && analysis.certifications.length > 0 ? `
+                        ${macrosHTML}
                         <div class="analysis-section">
-                            <h2 class="section-title">✓ Certifications & Standards</h2>
-                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                                ${analysis.certifications.map(cert => `
-                                    <span style="background: var(--ice-blue); padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 600;">
-                                        ${cert}
-                                    </span>
+                            <h2 class="section-title">🔬 Ingredients Deep Dive</h2>
+                            <div class="ingredient-list">
+                                ${(analysis.ingredients || []).map(ing => `
+                                    <div class="ingredient-item">
+                                        <div class="ingredient-header">
+                                            <span class="ingredient-name">${ing.name}</span>
+                                            <span class="impact-badge impact-${ing.healthImpact}">
+                                                ${ing.healthImpact === 'positive' ? '✓ Good' : ing.healthImpact === 'negative' ? '⚠ Caution' : 'Neutral'}
+                                            </span>
+                                        </div>
+                                        ${ing.readabilityIssue ? `<div class="alert-box" style="margin: 8px 0; font-size: 12px; padding: 8px;">⚠️ ${ing.readabilityIssue}</div>` : ''}
+                                        <div class="ingredient-purpose"><strong>Purpose:</strong> ${ing.purpose}</div>
+                                        <div class="ingredient-detail">${ing.details}</div>
+                                        <div style="font-size: 12px; color: var(--light-slate); margin-top: 8px;">
+                                            <strong>Source:</strong> ${ing.source}
+                                        </div>
+                                    </div>
                                 `).join('')}
                             </div>
                         </div>
-                    ` : ''}
-
-                    ${alternativesHTML}
-                    ${savePromptHTML}
-
-                    <div class="disclaimer">
-                        <strong>⚠️ Important Disclaimer:</strong> This analysis is for educational purposes only and should not be considered medical advice. 
-                        Information is based on detected ${this.scanMode === 'ingredients' ? 'ingredients' : 'product data'} and may not be 100% accurate. 
-                        Always verify ingredients on the actual product packaging. May miss allergens if not clearly visible in scan. 
-                        We are not liable for errors in detection or analysis. Consult healthcare professionals for specific dietary needs.
-                        <br><br>
-                        <strong>Data Sources:</strong> ${analysis.image ? 'Open Food Facts, ' : ''}AI analysis (Gemini), WHO, FSSAI, peer-reviewed research.
-                        Last analyzed: ${new Date().toLocaleDateString()}
+                        ${analysis.certifications && analysis.certifications.length > 0 ? `
+                            <div class="analysis-section">
+                                <h2 class="section-title">✓ Certifications & Standards</h2>
+                                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                    ${analysis.certifications.map(cert => `
+                                        <span style="background: var(--ice-blue); padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 600;">
+                                            ${cert}
+                                        </span>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        ${sourcesAccordionHTML}
+                        ${alternativesHTML}
+                        ${savePromptHTML}
+                        <div class="disclaimer" style="margin-top: 24px;">
+                            <strong>⚠️ Important Disclaimer:</strong> This analysis is for educational purposes only and should not be considered medical advice.
+                            Information is based on detected ${this.scanMode === 'ingredients' ? 'ingredients' : 'product data'} and may not be 100% accurate.
+                            Always verify ingredients on the actual product packaging. May miss allergens if not clearly visible in scan.
+                            We are not liable for errors in detection or analysis. Consult healthcare professionals for specific dietary needs.
+                            <br><br>
+                            <strong>Data Sources:</strong> ${analysis.image ? 'Open Food Facts, ' : ''}AI analysis (Gemini), WHO, FSSAI, peer-reviewed research.
+                            Last analyzed: ${new Date().toLocaleDateString()}
+                        </div>
                     </div>
 
                     <div style="text-align: center; margin-top: 24px;">
-                        <button class="btn btn-primary" onclick="app.showView('home')" style="margin-right: 12px;">
-                            🏠 Home
-                        </button>
-                        <button class="btn btn-secondary" onclick="app.showView('scanner')">
+                        <button class="btn btn-primary" onclick="app.showView('scanner')" style="width: 100%; max-width: 280px;">
                             📸 Scan Another
                         </button>
                     </div>
                 `;
 
+                window.scrollTo(0, 0);
                 this.showView('analysis');
-                
-                // Show footer with disclaimer
                 document.getElementById('app-footer').style.display = 'block';
+            },
+
+            toggleAnalysisDetails() {
+                const section = document.getElementById('analysis-details-section');
+                const btn = document.getElementById('analysis-details-toggle');
+                if (section && btn) {
+                    const isHidden = section.style.display === 'none';
+                    section.style.display = isHidden ? 'block' : 'none';
+                    btn.textContent = isHidden ? 'Hide details ↑' : 'See details →';
+                }
+            },
+
+            // v1.3: Sources accordion – one open at a time
+            toggleAccordion(btn) {
+                const content = btn.nextElementSibling;
+                const wasOpen = content && content.style.display === 'block';
+                document.querySelectorAll('.sources-accordion .accordion-content').forEach(el => { el.style.display = 'none'; });
+                document.querySelectorAll('.sources-accordion .accordion-arrow').forEach(el => { el.textContent = '▼'; });
+                if (content) {
+                    content.style.display = wasOpen ? 'none' : 'block';
+                    const arrow = btn.querySelector('.accordion-arrow');
+                    if (arrow) arrow.textContent = wasOpen ? '▼' : '▲';
+                }
             },
 
             // BUG #6: Toggle score details
@@ -4196,8 +4476,8 @@ Respond ONLY with valid JSON:
                     
                     this.showToast('Saved to My Scans! 💾', 'success');
                     
-                    // Navigate home after brief delay
-                    setTimeout(() => this.showView('home'), 1500);
+                    // Navigate to scanner after brief delay
+                    setTimeout(() => this.showView('scanner'), 1500);
                 } catch (e) {
                     console.error('Failed to save scan:', e);
                     this.showToast('Failed to save. Please try again.', 'error');
@@ -4205,8 +4485,8 @@ Respond ONLY with valid JSON:
             },
 
             skipSave() {
-                // Simply go home - no guilt
-                this.showView('home');
+                // Go back to scanner - no guilt
+                this.showView('scanner');
             },
 
             // v1.2.1: promptSignupIfContributing removed - not needed without Firebase
