@@ -2936,17 +2936,20 @@
                 // Log error
                 this.logError(error.code, { type: errorType, debugInfo });
                 
-                // DEBUG INFO: Build debug section if available
+                // DEBUG INFO: Build debug section if available (escape for HTML so API error bodies don't break the DOM)
                 let debugSection = '';
                 if (debugInfo) {
                     const debugDetails = typeof debugInfo === 'string' ? debugInfo : JSON.stringify(debugInfo, null, 2);
+                    const escapeHtml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                    const debugDetailsEscaped = escapeHtml(debugDetails);
+                    window._lastDebugInfo = debugDetails;
                     debugSection = `
                         <details style="text-align: left; margin: 16px 0; padding: 12px; background: #FEF3C7; border-radius: 8px; border: 1px solid #FCD34D;">
                             <summary style="cursor: pointer; font-weight: 600; color: #92400E; margin-bottom: 8px;">
                                 🔍 Debug Info (Tap to expand)
                             </summary>
-                            <pre style="font-size: 11px; color: #78350F; white-space: pre-wrap; word-wrap: break-word; margin: 8px 0 0 0; font-family: monospace; background: white; padding: 8px; border-radius: 4px; overflow-x: auto;">${debugDetails}</pre>
-                            <button onclick="app.copyDebugInfo('${debugDetails.replace(/'/g, "\\'")}'); event.stopPropagation();" style="margin-top: 8px; padding: 6px 12px; background: #F59E0B; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;">
+                            <pre style="font-size: 11px; color: #78350F; white-space: pre-wrap; word-wrap: break-word; margin: 8px 0 0 0; font-family: monospace; background: white; padding: 8px; border-radius: 4px; overflow-x: auto; max-height: 60vh; overflow-y: auto;">${debugDetailsEscaped}</pre>
+                            <button type="button" onclick="app.copyDebugInfo(window._lastDebugInfo || ''); event.stopPropagation();" style="margin-top: 8px; padding: 6px 12px; background: #F59E0B; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;">
                                 📋 Copy Debug Info
                             </button>
                         </details>
@@ -3641,7 +3644,9 @@
                         firstImageDataLength: firstImageLen,
                         scanMode: this.scanMode,
                         extractedTextLength: extractedText ? extractedText.length : 0,
-                        extractedTextPreview: extractedPreview
+                        extractedTextPreview: extractedPreview,
+                        ...(error.apiStatus != null && { apiStatus: error.apiStatus }),
+                        ...(error.apiBodyPreview != null && { apiBodyPreview: error.apiBodyPreview })
                     };
                     
                     // BUG-006 FIX: Better error detection; always show enriched debug for analysis failures (testing)
@@ -3891,16 +3896,17 @@ Respond ONLY with valid JSON:
                         
                         console.error('API response not ok:', response.status, errorDetails);
                         
-                        // Provide specific error messages based on status code
+                        const err = new Error(`API_ERROR_${response.status}: ${JSON.stringify(errorDetails).substring(0, 300)}`);
+                        err.apiStatus = response.status;
+                        err.apiBodyPreview = typeof errorText === 'string' ? errorText.substring(0, 600).replace(/\s+/g, ' ') : String(errorDetails).substring(0, 600);
                         if (response.status === 429) {
-                            throw new Error(`API_QUOTA_EXCEEDED: Rate limit or quota exceeded. Status: ${response.status}. Details: ${JSON.stringify(errorDetails).substring(0, 200)}`);
+                            err.message = `API_QUOTA_EXCEEDED: Rate limit or quota exceeded. Status: ${response.status}. Details: ${JSON.stringify(errorDetails).substring(0, 200)}`;
                         } else if (response.status === 403) {
-                            throw new Error(`API_AUTH_FAILED: Invalid API key or permission denied. Status: ${response.status}. Details: ${JSON.stringify(errorDetails).substring(0, 200)}`);
+                            err.message = `API_AUTH_FAILED: Invalid API key or permission denied. Status: ${response.status}. Details: ${JSON.stringify(errorDetails).substring(0, 200)}`;
                         } else if (response.status === 400) {
-                            throw new Error(`API_BAD_REQUEST: Invalid request format. Status: ${response.status}. Details: ${JSON.stringify(errorDetails).substring(0, 200)}`);
-                        } else {
-                            throw new Error(`API_ERROR_${response.status}: ${JSON.stringify(errorDetails).substring(0, 300)}`);
+                            err.message = `API_BAD_REQUEST: Invalid request format. Status: ${response.status}. Details: ${JSON.stringify(errorDetails).substring(0, 200)}`;
                         }
+                        throw err;
                     }
                     
                     const data = await response.json();
