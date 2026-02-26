@@ -23,6 +23,7 @@
                                data:
                                blob:
                                https://cdn.jsdelivr.net
+                               https://tessdata.projectnaptha.com
                                https://world.openfoodfacts.org;
                    img-src 'self' 
                            data: 
@@ -3543,9 +3544,16 @@
                         }
                         
                         this.updateLoadingMessage(`Processing image ${i + 1} of ${this.capturedImages.length}...`);
-                        const result = await Tesseract.recognize(this.capturedImages[i], 'eng+hin', {
-                            logger: m => console.log(m)
-                        });
+                        const result = await Tesseract.recognize(
+                            this.capturedImages[i],
+                            'eng',
+                            {
+                                logger: m => console.log(m),
+                                workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/worker.min.js',
+                                langPath: 'https://tessdata.projectnaptha.com/4.0.0',
+                                corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@4/tesseract-core.wasm.js'
+                            }
+                        );
                         extractedText += result.data.text + '\n\n';
                     }
                     
@@ -3567,7 +3575,20 @@
                             analyzeBtn.disabled = false; // Re-enable if images still exist
                         }
                         // Fix #6: Preserve capturedImages array on early return (don't clear) so user can retry
-                        this.showToast('Could not read any text. Please retake with clearer photo.', 'error');
+                        // Show full debug block (not just a toast) so empty-OCR failures are diagnosable
+                        const firstImageLen = this.capturedImages.length > 0 && typeof this.capturedImages[0] === 'string'
+                            ? this.capturedImages[0].length : 0;
+                        this.showError('ANALYSIS_FAILED', {
+                            failurePhase: 'ocr_empty',
+                            errorMessage: 'Tesseract returned no text (extractedTextLength: 0). Language pack may not have loaded, or image has no readable text.',
+                            capturedImagesCount: this.capturedImages.length,
+                            firstImageDataLength: firstImageLen,
+                            scanMode: this.scanMode,
+                            extractedTextLength: 0,
+                            extractedTextPreview: '(none)',
+                            timestamp: new Date().toISOString(),
+                            userAgent: navigator.userAgent
+                        });
                         return;
                     }
 
