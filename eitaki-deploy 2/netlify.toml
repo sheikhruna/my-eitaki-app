@@ -1,0 +1,21 @@
+# Netlify configuration for Eitaki PWA
+# Purpose: Configures functions and maintains PWA routing
+
+[build]
+  # Your PWA is already built (just index.html), so no build command needed
+  publish = "."
+  functions = "netlify/functions"
+
+# Keep your existing redirect for PWA routing (CRITICAL - don't remove)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Enable CORS for all function endpoints
+[[headers]]
+  for = "/.netlify/functions/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "POST, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type"
