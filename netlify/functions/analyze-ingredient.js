@@ -29,9 +29,9 @@ exports.handler = async function (event) {
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
             temperature: 0.1,
-            maxOutputTokens: 2048,
-            // Forces model output to be valid JSON string in text (avoids prose / no-brace replies)
-            responseMimeType: 'application/json'
+            maxOutputTokens: 2048
+            // Note: responseMimeType is not accepted on v1 generateContent for this API (returns 400).
+            // JSON shaping relies on the prompt + client parseGeminiJsonToAnalysis in index.html.
         }
     };
 

@@ -4008,7 +4008,7 @@ Respond ONLY with valid JSON:
                     pe.geminiFinishReason = finishReason || '(none)';
                     pe.rawGeminiTextPreview = text ? text.substring(0, 1200) : '(empty)';
                     pe.rawGeminiTextLength = text ? text.length : 0;
-                    pe.howToReadThisFailure = 'Gemini returned 200 but text was not valid JSON for our schema. Check rawGeminiTextPreview. Server should use responseMimeType application/json (see Netlify function).';
+                    pe.howToReadThisFailure = 'Gemini returned 200 but text was not valid JSON for our schema. Check rawGeminiTextPreview. (v1 API does not support responseMimeType here; parsing is client-side.)';
                     throw pe;
                 } catch (error) {
                     console.error('Gemini API error:', error);
