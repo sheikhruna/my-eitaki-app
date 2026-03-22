@@ -22,8 +22,8 @@ exports.handler = async function (event) {
         return { statusCode: 400, body: JSON.stringify({ error: 'Missing prompt field' }) };
     }
 
-    // Use stable v1 endpoint; v1beta no longer serves gemini-2.0-flash and returns 404
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    // gemini-2.0-flash is deprecated; stable workhorse is gemini-2.5-flash (see ai.google.dev model docs)
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
     const geminiBody = {
         contents: [{ parts: [{ text: prompt }] }],
@@ -43,12 +43,33 @@ exports.handler = async function (event) {
         const responseText = await geminiResponse.text();
 
         if (!geminiResponse.ok) {
+            // Always return 502 for upstream Gemini failures so the browser Network tab
+            // does not show 404 (which looks like a missing Netlify function).
+            let geminiRpcMessage = '';
+            let geminiRpcCode = '';
+            try {
+                const parsed = JSON.parse(responseText);
+                geminiRpcMessage = parsed?.error?.message || '';
+                geminiRpcCode = parsed?.error?.code != null ? String(parsed.error.code) : (parsed?.error?.status || '');
+            } catch (_) {
+                geminiRpcMessage = responseText.substring(0, 500);
+            }
             return {
-                statusCode: geminiResponse.status,
+                statusCode: 502,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     error: `Gemini API error ${geminiResponse.status}`,
-                    details: responseText
+                    apiFailureLayer: 'gemini_upstream',
+                    geminiHttpStatus: geminiResponse.status,
+                    geminiModel: 'gemini-2.5-flash',
+                    geminiEndpoint: 'v1',
+                    geminiRpcCode: geminiRpcCode || undefined,
+                    geminiRpcMessage: geminiRpcMessage || undefined,
+                    details: responseText,
+                    serverDebugMeta: {
+                        function: 'analyze-ingredient',
+                        generativelanguagePath: '/v1/models/gemini-2.5-flash:generateContent'
+                    }
                 })
             };
         }

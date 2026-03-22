@@ -3655,6 +3655,7 @@
                         ? this.capturedImages[0].length
                         : 0;
                     const debugInfo = {
+                        clientDebugSchemaVersion: 2,
                         failurePhase,
                         errorName: error.name || '(unknown)',
                         errorMessage: error.message || '(no message)',
@@ -3666,8 +3667,24 @@
                         scanMode: this.scanMode,
                         extractedTextLength: extractedText ? extractedText.length : 0,
                         extractedTextPreview: extractedPreview,
-                        ...(error.apiStatus != null && { apiStatus: error.apiStatus }),
-                        ...(error.apiBodyPreview != null && { apiBodyPreview: error.apiBodyPreview })
+                        ...(error.netlifyFunctionPath && { netlifyFunctionPath: error.netlifyFunctionPath }),
+                        ...(error.apiFailureLayer && { apiFailureLayer: error.apiFailureLayer }),
+                        ...(error.geminiHttpStatus != null && { geminiHttpStatus: error.geminiHttpStatus }),
+                        ...(error.geminiModel && { geminiModel: error.geminiModel }),
+                        ...(error.geminiEndpoint && { geminiEndpoint: error.geminiEndpoint }),
+                        ...(error.geminiRpcCode && { geminiRpcCode: error.geminiRpcCode }),
+                        ...(error.geminiRpcMessage && { geminiRpcMessage: error.geminiRpcMessage }),
+                        ...(error.serverDebugMeta && { serverDebugMeta: error.serverDebugMeta }),
+                        ...(error.debugInterpretation && { debugInterpretation: error.debugInterpretation }),
+                        ...(error.apiStatus != null && { apiStatus: error.apiStatus, netlifyOrFetchHttpStatus: error.apiStatus }),
+                        ...(error.apiBodyPreview != null && { apiBodyPreview: error.apiBodyPreview }),
+                        howToReadThisFailure: error.apiFailureLayer === 'gemini_upstream'
+                            ? 'Netlify function ran. Failure is from Google Gemini. Use geminiHttpStatus (Google) not netlifyOrFetchHttpStatus (502 wrapper). If geminiHttpStatus is 404, change model or API version on server; if 429, quota/billing.'
+                            : (error.apiFailureLayer === 'netlify_or_client_route'
+                                ? 'Check netlifyFunctionPath deploy + GET test (expect 405). If function exists, 404 may be old build forwarding Gemini 404 — redeploy latest function.'
+                                : (error.apiFailureLayer === 'netlify_function_runtime'
+                                    ? 'See Netlify → site → Logs for function stack trace.'
+                                    : 'See errorMessage and apiBodyPreview.'))
                     };
                     
                     // BUG-006 FIX: Better error detection; always show enriched debug for analysis failures (testing)
@@ -3866,12 +3883,56 @@ Respond ONLY with valid JSON:
                         const err = new Error(`API_ERROR_${response.status}: ${JSON.stringify(errorDetails).substring(0, 300)}`);
                         err.apiStatus = response.status;
                         err.apiBodyPreview = typeof errorText === 'string' ? errorText.substring(0, 600).replace(/\s+/g, ' ') : String(errorDetails).substring(0, 600);
-                        if (response.status === 429) {
+                        err.clientDebugSchemaVersion = 2;
+                        err.netlifyFunctionPath = '/.netlify/functions/analyze-ingredient';
+
+                        // Structured upstream errors from our Netlify function (avoids mistaking Gemini 404 for missing function)
+                        if (errorDetails && typeof errorDetails === 'object') {
+                            if (errorDetails.apiFailureLayer) {
+                                err.apiFailureLayer = errorDetails.apiFailureLayer;
+                            }
+                            if (errorDetails.geminiHttpStatus != null) {
+                                err.geminiHttpStatus = errorDetails.geminiHttpStatus;
+                            }
+                            if (errorDetails.geminiModel) {
+                                err.geminiModel = errorDetails.geminiModel;
+                            }
+                            if (errorDetails.geminiEndpoint) {
+                                err.geminiEndpoint = errorDetails.geminiEndpoint;
+                            }
+                            if (errorDetails.geminiRpcMessage) {
+                                err.geminiRpcMessage = errorDetails.geminiRpcMessage;
+                            }
+                            if (errorDetails.geminiRpcCode) {
+                                err.geminiRpcCode = errorDetails.geminiRpcCode;
+                            }
+                            if (errorDetails.serverDebugMeta) {
+                                err.serverDebugMeta = errorDetails.serverDebugMeta;
+                            }
+                        }
+
+                        // 502 from our function = Netlify ran; Google Gemini failed (see geminiHttpStatus)
+                        if (response.status === 502 && err.geminiHttpStatus != null) {
+                            err.apiFailureLayer = err.apiFailureLayer || 'gemini_upstream';
+                            if (err.geminiHttpStatus === 429) {
+                                err.message = `API_QUOTA_EXCEEDED: Gemini returned HTTP 429 (quota/rate). Netlify function HTTP was 502 (wrapper). Model: ${err.geminiModel || 'unknown'}. ${(err.geminiRpcMessage || '').substring(0, 280)}`;
+                            } else if (err.geminiHttpStatus === 404) {
+                                err.message = `GEMINI_MODEL_OR_ENDPOINT_404: Gemini returned HTTP 404 (model/endpoint not available for this key). Netlify function OK. Model: ${err.geminiModel || 'unknown'}. ${(err.geminiRpcMessage || '').substring(0, 280)}`;
+                            } else {
+                                err.message = `GEMINI_UPSTREAM_ERROR: Netlify function HTTP 502; Gemini HTTP ${err.geminiHttpStatus}. Model: ${err.geminiModel || 'unknown'}. ${(err.geminiRpcMessage || '').substring(0, 280)}`;
+                            }
+                        } else if (response.status === 404) {
+                            err.apiFailureLayer = err.apiFailureLayer || 'netlify_or_client_route';
+                            err.debugInterpretation = 'HTTP 404 on this fetch: either the Netlify function URL is wrong / not deployed, OR an older serverless build forwarded Gemini\'s 404 as the response status. Open GET same URL in browser: 405 = function exists. If you see 502 with JSON body, use geminiHttpStatus inside the body.';
+                        } else if (response.status === 429) {
                             err.message = `API_QUOTA_EXCEEDED: Rate limit or quota exceeded. Status: ${response.status}. Details: ${JSON.stringify(errorDetails).substring(0, 200)}`;
                         } else if (response.status === 403) {
                             err.message = `API_AUTH_FAILED: Invalid API key or permission denied. Status: ${response.status}. Details: ${JSON.stringify(errorDetails).substring(0, 200)}`;
                         } else if (response.status === 400) {
                             err.message = `API_BAD_REQUEST: Invalid request format. Status: ${response.status}. Details: ${JSON.stringify(errorDetails).substring(0, 200)}`;
+                        } else if (response.status === 500) {
+                            err.apiFailureLayer = err.apiFailureLayer || 'netlify_function_runtime';
+                            err.debugInterpretation = 'HTTP 500: exception inside Netlify function (check function logs on Netlify).';
                         }
                         throw err;
                     }
