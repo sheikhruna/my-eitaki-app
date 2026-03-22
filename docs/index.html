@@ -3999,12 +3999,19 @@ Respond ONLY with valid JSON:
                         return this.validateAndCleanAnalysis(rawAnalysis);
                     }
 
-                    const pe = new Error('Could not parse response');
+                    const pe = new Error(
+                        finishReason === 'MAX_TOKENS'
+                            ? 'AI output was cut off (MAX_TOKENS) — JSON incomplete. Server should use higher maxOutputTokens.'
+                            : 'Could not parse response'
+                    );
                     pe.parseFailurePhase = 'gemini_json_parse';
                     pe.geminiFinishReason = finishReason || '(none)';
                     pe.rawGeminiTextPreview = text ? text.substring(0, 1200) : '(empty)';
                     pe.rawGeminiTextLength = text ? text.length : 0;
-                    pe.howToReadThisFailure = 'Gemini returned 200 but text was not valid JSON for our schema. Check rawGeminiTextPreview. (v1 API does not support responseMimeType here; parsing is client-side.)';
+                    pe.howToReadThisFailure =
+                        finishReason === 'MAX_TOKENS'
+                            ? 'Model hit output token limit before finishing JSON (see geminiFinishReason). Fix: raise maxOutputTokens in netlify/functions/analyze-ingredient.js (e.g. 8192).'
+                            : 'Gemini returned 200 but text was not valid JSON for our schema. Check rawGeminiTextPreview. (v1 API does not support responseMimeType here; parsing is client-side.)';
                     throw pe;
                 } catch (error) {
                     console.error('Gemini API error:', error);

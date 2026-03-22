@@ -29,7 +29,8 @@ exports.handler = async function (event) {
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
             temperature: 0.1,
-            maxOutputTokens: 2048
+            // 2.5 Flash can use part of the budget for internal reasoning; 2048 often truncates JSON → MAX_TOKENS + parse errors.
+            maxOutputTokens: 8192
             // Note: responseMimeType is not accepted on v1 generateContent for this API (returns 400).
             // JSON shaping relies on the prompt + client parseGeminiJsonToAnalysis in index.html.
         }
