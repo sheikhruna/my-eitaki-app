@@ -3676,15 +3676,22 @@
                         ...(error.geminiRpcMessage && { geminiRpcMessage: error.geminiRpcMessage }),
                         ...(error.serverDebugMeta && { serverDebugMeta: error.serverDebugMeta }),
                         ...(error.debugInterpretation && { debugInterpretation: error.debugInterpretation }),
+                        ...(error.parseFailurePhase && { parseFailurePhase: error.parseFailurePhase }),
+                        ...(error.geminiFinishReason && { geminiFinishReason: error.geminiFinishReason }),
+                        ...(error.rawGeminiTextPreview && { rawGeminiTextPreview: error.rawGeminiTextPreview }),
+                        ...(error.rawGeminiTextLength != null && { rawGeminiTextLength: error.rawGeminiTextLength }),
+                        ...(error.geminiRawResponsePreview && { geminiRawResponsePreview: error.geminiRawResponsePreview }),
                         ...(error.apiStatus != null && { apiStatus: error.apiStatus, netlifyOrFetchHttpStatus: error.apiStatus }),
                         ...(error.apiBodyPreview != null && { apiBodyPreview: error.apiBodyPreview }),
-                        howToReadThisFailure: error.apiFailureLayer === 'gemini_upstream'
+                        howToReadThisFailure: error.parseFailurePhase === 'gemini_json_parse' || error.parseFailurePhase === 'gemini_shape'
+                            ? (error.howToReadThisFailure || 'Parse failure after HTTP 200: see rawGeminiTextPreview or geminiRawResponsePreview.')
+                            : (error.apiFailureLayer === 'gemini_upstream'
                             ? 'Netlify function ran. Failure is from Google Gemini. Use geminiHttpStatus (Google) not netlifyOrFetchHttpStatus (502 wrapper). If geminiHttpStatus is 404, change model or API version on server; if 429, quota/billing.'
                             : (error.apiFailureLayer === 'netlify_or_client_route'
                                 ? 'Check netlifyFunctionPath deploy + GET test (expect 405). If function exists, 404 may be old build forwarding Gemini 404 — redeploy latest function.'
                                 : (error.apiFailureLayer === 'netlify_function_runtime'
                                     ? 'See Netlify → site → Logs for function stack trace.'
-                                    : 'See errorMessage and apiBodyPreview.'))
+                                    : 'See errorMessage and apiBodyPreview.')))
                     };
                     
                     // BUG-006 FIX: Better error detection; always show enriched debug for analysis failures (testing)
@@ -3942,20 +3949,30 @@ Respond ONLY with valid JSON:
                     // Check for valid response structure
                     if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
                         console.error('Invalid API response structure:', data);
-                        throw new Error(`INVALID_API_RESPONSE: ${JSON.stringify(data).substring(0, 300)}`);
+                        const e = new Error(`INVALID_API_RESPONSE: ${JSON.stringify(data).substring(0, 300)}`);
+                        e.parseFailurePhase = 'gemini_shape';
+                        e.geminiRawResponsePreview = JSON.stringify(data).substring(0, 1200);
+                        throw e;
                     }
                     
-                    let text = data.candidates[0].content.parts[0].text;
-                    text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-                    const jsonMatch = text.match(/\{[\s\S]*\}/);
-                    
-                    if (jsonMatch) {
-                        const rawAnalysis = JSON.parse(jsonMatch[0]);
-                        // v1.2.0: Post-processing validation
+                    const cand = data.candidates[0];
+                    const finishReason = cand.finishReason || '';
+                    const parts = cand.content.parts || [];
+                    let text = parts.map(p => (typeof p.text === 'string' ? p.text : '')).join('\n').trim();
+                    text = text.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
+
+                    const rawAnalysis = this.parseGeminiJsonToAnalysis(text);
+                    if (rawAnalysis) {
                         return this.validateAndCleanAnalysis(rawAnalysis);
                     }
-                    
-                    throw new Error('Could not parse response');
+
+                    const pe = new Error('Could not parse response');
+                    pe.parseFailurePhase = 'gemini_json_parse';
+                    pe.geminiFinishReason = finishReason || '(none)';
+                    pe.rawGeminiTextPreview = text ? text.substring(0, 1200) : '(empty)';
+                    pe.rawGeminiTextLength = text ? text.length : 0;
+                    pe.howToReadThisFailure = 'Gemini returned 200 but text was not valid JSON for our schema. Check rawGeminiTextPreview. Server should use responseMimeType application/json (see Netlify function).';
+                    throw pe;
                 } catch (error) {
                     console.error('Gemini API error:', error);
                     this.logError('ERR_API', { message: error.message });

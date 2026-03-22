@@ -29,7 +29,9 @@ exports.handler = async function (event) {
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
             temperature: 0.1,
-            maxOutputTokens: 2048
+            maxOutputTokens: 2048,
+            // Forces model output to be valid JSON string in text (avoids prose / no-brace replies)
+            responseMimeType: 'application/json'
         }
     };
 
