@@ -22,7 +22,8 @@ exports.handler = async function (event) {
         return { statusCode: 400, body: JSON.stringify({ error: 'Missing prompt field' }) };
     }
 
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    // Use stable v1 endpoint; v1beta no longer serves gemini-2.0-flash and returns 404
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
     const geminiBody = {
         contents: [{ parts: [{ text: prompt }] }],
