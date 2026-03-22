@@ -3618,8 +3618,12 @@
                     // Additional Fix #1: Don't show error if request was cancelled (user navigated away)
                     if (error.name === 'AbortError') {
                         console.log('Analysis cancelled - user navigated away');
+                        this.hideLoading();
+                        this.isAnalyzing = false;
                         this.currentAbortController = null;
-                        return; // Silently exit, user already navigated away
+                        const ab = document.getElementById('analyze-btn-bar');
+                        if (ab && this.capturedImages.length > 0) ab.disabled = false;
+                        return;
                     }
                     
                     // Additional Fix #2: Don't show error if OCR was cancelled
@@ -3683,7 +3687,11 @@
                         ...(error.geminiRawResponsePreview && { geminiRawResponsePreview: error.geminiRawResponsePreview }),
                         ...(error.apiStatus != null && { apiStatus: error.apiStatus, netlifyOrFetchHttpStatus: error.apiStatus }),
                         ...(error.apiBodyPreview != null && { apiBodyPreview: error.apiBodyPreview }),
-                        howToReadThisFailure: error.parseFailurePhase === 'gemini_json_parse' || error.parseFailurePhase === 'gemini_shape'
+                        howToReadThisFailure:
+                            error.parseFailurePhase === 'gemini_json_parse' ||
+                            error.parseFailurePhase === 'gemini_shape' ||
+                            error.parseFailurePhase === 'gemini_empty_parts' ||
+                            error.parseFailurePhase === 'gemini_prompt_blocked'
                             ? (error.howToReadThisFailure || 'Parse failure after HTTP 200: see rawGeminiTextPreview or geminiRawResponsePreview.')
                             : (error.apiFailureLayer === 'gemini_upstream'
                             ? 'Netlify function ran. Failure is from Google Gemini. Use geminiHttpStatus (Google) not netlifyOrFetchHttpStatus (502 wrapper). If geminiHttpStatus is 404, change model or API version on server; if 429, quota/billing.'
@@ -3945,21 +3953,46 @@ Respond ONLY with valid JSON:
                     }
                     
                     const data = await response.json();
-                    
-                    // Check for valid response structure
-                    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+
+                    // Empty candidates — often safety / other blocks (see promptFeedback)
+                    if (!data.candidates || data.candidates.length === 0) {
+                        const pf = data.promptFeedback || {};
+                        const br = pf.blockReason || pf.block_reason;
+                        const e = new Error(
+                            br ? `GEMINI_BLOCKED: ${br}` : `INVALID_API_RESPONSE: No candidates`
+                        );
+                        e.parseFailurePhase = br ? 'gemini_prompt_blocked' : 'gemini_shape';
+                        e.geminiRawResponsePreview = JSON.stringify(data).substring(0, 1200);
+                        if (br) {
+                            e.howToReadThisFailure =
+                                'Gemini blocked before generation (promptFeedback.blockReason). See Google AI safety docs.';
+                        }
+                        throw e;
+                    }
+
+                    const cand = data.candidates[0];
+                    if (!cand.content) {
                         console.error('Invalid API response structure:', data);
-                        const e = new Error(`INVALID_API_RESPONSE: ${JSON.stringify(data).substring(0, 300)}`);
+                        const e = new Error('INVALID_API_RESPONSE: Missing candidate[0].content');
                         e.parseFailurePhase = 'gemini_shape';
                         e.geminiRawResponsePreview = JSON.stringify(data).substring(0, 1200);
                         throw e;
                     }
-                    
-                    const cand = data.candidates[0];
+
                     const finishReason = cand.finishReason || '';
                     const parts = cand.content.parts || [];
                     let text = parts.map(p => (typeof p.text === 'string' ? p.text : '')).join('\n').trim();
                     text = text.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
+
+                    if (!text) {
+                        const pe = new Error('Gemini returned empty text in candidate parts');
+                        pe.parseFailurePhase = 'gemini_empty_parts';
+                        pe.geminiFinishReason = finishReason || '(none)';
+                        pe.geminiRawResponsePreview = JSON.stringify(data).substring(0, 1200);
+                        pe.howToReadThisFailure =
+                            'HTTP 200 but no text in parts. Check geminiFinishReason (e.g. SAFETY, MAX_TOKENS) and geminiRawResponsePreview.';
+                        throw pe;
+                    }
 
                     const rawAnalysis = this.parseGeminiJsonToAnalysis(text);
                     if (rawAnalysis) {

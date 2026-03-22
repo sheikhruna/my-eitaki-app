@@ -1,0 +1,6 @@
+.DS_Store
+**/.DS_Store
+
+# Screenshots stay local only (large binaries; do not commit)
+screenshots/*.png
+screenshots/*.PNG
